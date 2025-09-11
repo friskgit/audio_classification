@@ -57,7 +57,7 @@ To find additional classifiers its easy to run the script with different key wor
 * Model
 Extracted from here: https://medium.com/@oluyaled/audio-classification-using-deep-learning-and-tensorflow-a-step-by-step-guide-5327467ee9ab
 
-#+begin_src python :results output value :tangle /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/classification/model.py
+#+begin_src python :results output value :tangle /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/model.py
   import os
   import librosa
   import numpy as np
@@ -71,7 +71,11 @@ Extracted from here: https://medium.com/@oluyaled/audio-classification-using-dee
   from tensorflow.keras.models import load_model
 
   # Define your folder structure
-  data_dir = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/classification/training_data'
+  cwd = os.getcwd()
+  print(cwd)
+  dir = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/'
+  # Change this to cwd + '/' + when run as script.
+  data_dir = dir + '/' + 'training_data'
   classes = ['Impulse', 'Iteration']
 
   # Load and preprocess audio data
@@ -111,19 +115,98 @@ Extracted from here: https://medium.com/@oluyaled/audio-classification-using-dee
   model = Model(input_layer, output_layer)
 #+end_src
 
-#+RESULTS:
 * Compiling the model
-#+begin_src python :tangle /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/classification/model.py
+#+begin_src python :tangle /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/model.py
   model.compile(optimizer=Adam(learning_rate=0.001), loss='categorical_crossentropy', metrics=['accuracy'])
 #+end_src
 
 * Training the model
-#+begin_src python :tangle /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/classification/model.py
+#+begin_src python :tangle /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/model.py
   model.fit(X_train, y_train, epochs=200, batch_size=32, validation_data=(X_test, y_test))
 #+end_src
 
+* Save the model
+The 'dir' variable is a hack to handle emacs directories. This should be replaced by os.getcwd().
+#+begin_src python :tangle /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/save.py
+  import sys
+  file_name = sys.argv[1]
+  # dir = os.getcwd()
+  dir = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/'
+  model.save(dir + 'audio_classification_imp_iter.keras')
+#+end_src
+
+
 * Model evaluation
-#+begin_src python :tangle /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/classification/model.py
+#+begin_src python :tangle /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/eval_model.py
   test_accuracy=model.evaluate(X_test,y_test,verbose=0)
   print(test_accuracy[1])
 #+end_src
+
+* Testing the model
+#+begin_src python :results value output /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/eval_model.py
+  # Load the saved model
+  # dir = os.getcwd()
+  dir = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/'
+  model = load_model(dir + 'audio_classification_imp_iter.keras')
+
+  # Define the target shape for input spectrograms
+  target_shape = (128, 128)
+
+  # Define your class labels
+  classes = ['Impulse', 'Iteration']
+
+  # Function to preprocess and classify an audio file
+  def test_audio(file_path, model):
+      # Load and preprocess the audio file
+      audio_data, sample_rate = librosa.load(file_path, sr=None)
+      mel_spectrogram = librosa.feature.melspectrogram(y=audio_data, sr=sample_rate)
+      mel_spectrogram = resize(np.expand_dims(mel_spectrogram, axis=-1), target_shape)
+      mel_spectrogram = tf.reshape(mel_spectrogram, (1,) + target_shape + (1,))
+      
+      # Make predictions
+      predictions = model.predict(mel_spectrogram)
+      
+      # Get the class probabilities
+      class_probabilities = predictions[0]
+      
+      # Get the predicted class index
+      predicted_class_index = np.argmax(class_probabilities)
+      
+      return class_probabilities, predicted_class_index
+
+  # Test an audio file
+  test_audio_file = 'dog_barking_4.wav'
+  class_probabilities, predicted_class_index = test_audio(test_audio_file, model)
+
+  # Display results for all classes
+  for i, class_label in enumerate(classes):
+      probability = class_probabilities[i]
+      print(f'Class: {class_label}, Probability: {probability:.4f}')
+
+  # Calculate and display the predicted class and accuracy
+  predicted_class = classes[predicted_class_index]
+  accuracy = class_probabilities[predicted_class_index]
+  print(f'The audio is classified as: {predicted_class}')
+  print(f'Accuracy: {accuracy:.4f}')
+#+end_src
+
+* Test result
+A first quick run just testing two files, one in each category, was successful:
+
+>>> 
+1/1 ━━━━━━━━━━━━━━━━━━━━ 0s 30ms/step
+>>> 
+Class: Impulse, Probability: 0.9994
+Class: Iteration, Probability: 0.0006
+>>> 
+The audio is classified as: Impulse
+Accuracy: 0.9994
+>>> 
+>>> 
+1/1 ━━━━━━━━━━━━━━━━━━━━ 0s 15ms/step
+>>> 
+Class: Impulse, Probability: 0.1112
+Class: Iteration, Probability: 0.8888
+The audio is classified as: Iteration
+Accuracy: 0.8888
+>>> 

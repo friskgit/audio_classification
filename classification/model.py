@@ -11,7 +11,11 @@ from tensorflow.image import resize
 from tensorflow.keras.models import load_model
 
 # Define your folder structure
-data_dir = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/classification/training_data'
+cwd = os.getcwd()
+print(cwd)
+dir = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/'
+# Change this to cwd + '/' + when run as script.
+data_dir = dir + '/' + 'training_data'
 classes = ['Impulse', 'Iteration']
 
 # Load and preprocess audio data
@@ -51,3 +55,5 @@ output_layer = Dense(len(classes), activation='softmax')(x)
 model = Model(input_layer, output_layer)
 
 model.compile(optimizer=Adam(learning_rate=0.001), loss='categorical_crossentropy', metrics=['accuracy'])
+
+model.fit(X_train, y_train, epochs=200, batch_size=32, validation_data=(X_test, y_test))
