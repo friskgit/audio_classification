@@ -135,7 +135,6 @@ The 'dir' variable is a hack to handle emacs directories. This should be replace
   model.save(dir + 'audio_classification_imp_iter.keras')
 #+end_src
 
-
 * Model evaluation
 #+begin_src python :tangle /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/eval_model.py
   test_accuracy=model.evaluate(X_test,y_test,verbose=0)
@@ -143,7 +142,9 @@ The 'dir' variable is a hack to handle emacs directories. This should be replace
 #+end_src
 
 * Testing the model
-#+begin_src python :results value output /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/eval_model.py
+This proves to be working with limited tests. Next thing to do is work out the optimal settings for analysis below. Especially the spectrogram settings and we should also test with other spectrograms than mel.
+
+#+begin_src python :results value output :tangle /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/eval_model.py
   # Load the saved model
   # dir = os.getcwd()
   dir = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/'
@@ -175,7 +176,7 @@ The 'dir' variable is a hack to handle emacs directories. This should be replace
       return class_probabilities, predicted_class_index
 
   # Test an audio file
-  test_audio_file = 'dog_barking_4.wav'
+  test_audio_file = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/training_data/imp_005.wav'
   class_probabilities, predicted_class_index = test_audio(test_audio_file, model)
 
   # Display results for all classes
