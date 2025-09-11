@@ -1,5 +1,7 @@
 
 * Sort files and copy
+Trying to fix this git error
+
 This script relies on the dataset SCHAEFFER that should be extracted at ../../dataset/SCHAEFFER/ relative to this script. The dataset may be downloaded from https://www.kaggle.com/datasets/maurizioberta/test-schaeffer?resource=download
 
 This script parses through the SCHAEFFER dataset and looks for the keywords in the variables keyA and keyB. It goes through the following steps:
