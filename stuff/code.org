@@ -1,5 +1,10 @@
 
 * Sort files and copy
+Fick till ett script som gör det vi vill. Jag lyckades även träna modellen på datan, men sen kom jag inte längre. Håller på att lägger upp allt i https://github.com/friskgit/audio_classification
+
+Jag åkte inte in till Västerås idag, men vi kanske kan höras lite kort efter lunch?
+
+Script:
 
 This script parses through the SCHAEFFER dataset and looks for the keywords in the variables keyA and keyB. It goes through the following steps:
 1. clear the directories defined by dirA and dirB
@@ -10,7 +15,7 @@ This script parses through the SCHAEFFER dataset and looks for the keywords in t
 
 To find additional classifiers its easy to run the script with different key words. Beware of multi word keys which has not been tested.
 
-#+begin_src shell :results output :dir "/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/dataset/SCHAEFFER/" :tangle ../dataset/SCHAEFFER/bash_script.sh
+#+begin_src shell :results output :dir "/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/dataset/SCHAEFFER/" :tangle ../classification/import_data.sh
   #!/bin/bash
 keyA=Impulse
 keyB=Iteration
