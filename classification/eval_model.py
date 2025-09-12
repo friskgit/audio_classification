@@ -10,7 +10,7 @@ model = load_model(dir + 'audio_classification_imp_iter.keras')
 target_shape = (128, 128)
 
 # Define your class labels
-classes = ['Impulse', 'Iteration']
+classes = ['Impulse', 'Iteration', 'Vsustain', 'Fsustain']
 
 # Function to preprocess and classify an audio file
 def test_audio(file_path, model):
@@ -32,9 +32,9 @@ def test_audio(file_path, model):
     return class_probabilities, predicted_class_index
 
 # Test an audio file
-test_audio_file = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/training_data/imp_005.wav'
+test_audio_file = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/training_data/pluck.wav'
 class_probabilities, predicted_class_index = test_audio(test_audio_file, model)
-
+afile = os.path.basename(test_audio_file)
 # Display results for all classes
 for i, class_label in enumerate(classes):
     probability = class_probabilities[i]
@@ -43,5 +43,5 @@ for i, class_label in enumerate(classes):
 # Calculate and display the predicted class and accuracy
 predicted_class = classes[predicted_class_index]
 accuracy = class_probabilities[predicted_class_index]
-print(f'The audio is classified as: {predicted_class}')
+print(f'The audio {afile} classified as: {predicted_class}')
 print(f'Accuracy: {accuracy:.4f}')

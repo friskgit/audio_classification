@@ -1,5 +1,5 @@
 
-* Sort files and copy
+* Sort files and copy (2d)
 Trying to fix this git error
 
 This script relies on the dataset SCHAEFFER that should be extracted at ../../dataset/SCHAEFFER/ relative to this script. The dataset may be downloaded from https://www.kaggle.com/datasets/maurizioberta/test-schaeffer?resource=download
@@ -56,66 +56,149 @@ To find additional classifiers its easy to run the script with different key wor
 : Done!\n
 
 
+* Sort files and copy (add dimension)
+This script relies on the dataset SCHAEFFER that should be extracted at ../../dataset/SCHAEFFER/ relative to this script. The dataset may be downloaded from https://www.kaggle.com/datasets/maurizioberta/test-schaeffer?resource=download
+
+See instruction [[*Sort files and copy (2d)][above]].
+
+To find additional classifiers its easy to run the script with different key words. Use the parameter 'column' to specify in which column the keyword is found in.
+
+#+begin_src shell :results output :tangle ./import_data.sh
+  #!/bin/bash
+  dataset="../../dataset/SCHAEFFER/"
+  keyA="Vacillating sustain"
+  keyB="Flat sustain"
+  base="../classification/training_data/"
+  dirA="$base""$keyA"
+  dirB="$base""$keyB"
+  path=".object.labels.sustain"
+
+  echo "Clearing directories...\n\n"
+  if [ ! -d "$dirB" ]; then
+     rm -rf $dirB/*.wav
+  fi
+  if [ ! -d "$dirA" ]; then
+      rm -rf $dirA/*.wav
+  fi
+
+  echo "Copying files from dataset...\n\n"
+  for d in "$dataset"*/; do
+      for j in "$d"*.json; do
+  	if test -f "$j"
+  	then
+  	    if [[ "$(cat "$j" | jq $path)" == "\""$keyA"\"" ]]; then
+  		if [ ! -d "$dirA" ]; then
+  		    mkdir "$dirA"
+  		fi
+  		cp "$d""`cat "$j" | jq -r '.object.filename'`" "$dirA"
+  	    fi
+  	    if [[ "$(cat "$j" | jq $path)" == "\""$keyB"\"" ]]; then
+  		if [ ! -d "$dirB" ]; then
+  		    mkdir "$dirB"
+  		fi
+  		cp "$d""`cat "$j" | jq -r '.object.filename'`" "$dirB"
+  	    fi
+  	fi
+      done
+  done
+
+  echo "Done!\n"
+#+end_src
+
+
 * Model
 Extracted from here: https://medium.com/@oluyaled/audio-classification-using-deep-learning-and-tensorflow-a-step-by-step-guide-5327467ee9ab
 
 #+begin_src python :results output value :tangle /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/model.py
-  import os
-  import librosa
-  import numpy as np
-  import tensorflow as tf
-  from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense
-  from tensorflow.keras.models import Model
-  from tensorflow.keras.optimizers import Adam
-  from sklearn.model_selection import train_test_split
-  from tensorflow.keras.utils import to_categorical
-  from tensorflow.image import resize
-  from tensorflow.keras.models import load_model
+    import os
+    import librosa
+    import numpy as np
+    import tensorflow as tf
+    from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense
+    from tensorflow.keras.models import Model
+    from tensorflow.keras.optimizers import Adam
+    from sklearn.model_selection import train_test_split
+    from tensorflow.keras.utils import to_categorical
+    from tensorflow.image import resize
+    from tensorflow.keras.models import load_model
 
-  # Define your folder structure
-  cwd = os.getcwd()
-  print(cwd)
-  dir = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/'
-  # Change this to cwd + '/' + when run as script.
-  data_dir = dir + '/' + 'training_data'
-  classes = ['Impulse', 'Iteration']
+    # Define your folder structure
+    cwd = os.getcwd()
+    print(cwd)
+    dir = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/'
+    # Change this to cwd + '/' + when run as script.
+    data_dir = dir + '/' + 'training_data'
+    classes = ['Impulse', 'Iteration', 'Vsustain', 'Fsustain']
 
-  # Load and preprocess audio data
-  def load_and_preprocess_data(data_dir, classes, target_shape=(128, 128)):
-      data = []
-      labels = []
-      
-      for i, class_name in enumerate(classes):
-          class_dir = os.path.join(data_dir, class_name)
-          for filename in os.listdir(class_dir):
-              if filename.endswith('.wav'):
-                  file_path = os.path.join(class_dir, filename)
-                  audio_data, sample_rate = librosa.load(file_path, sr=None)
-                  # Perform preprocessing (e.g., convert to Mel spectrogram and resize)
-                  mel_spectrogram = librosa.feature.melspectrogram(y=audio_data, sr=sample_rate)
-                  mel_spectrogram = resize(np.expand_dims(mel_spectrogram, axis=-1), target_shape)
-                  data.append(mel_spectrogram)
-                  labels.append(i)
-                  
-      return np.array(data), np.array(labels)
+    # Load and preprocess audio data
+    def load_and_preprocess_data(data_dir, classes, target_shape=(128, 128)):
+        data = []
+        labels = []
+        
+        for i, class_name in enumerate(classes):
+            class_dir = os.path.join(data_dir, class_name)
+            for filename in os.listdir(class_dir):
+                if filename.endswith('.wav'):
+                    file_path = os.path.join(class_dir, filename)
+                    audio_data, sample_rate = librosa.load(file_path, sr=None)
+                    # Perform preprocessing (e.g., convert to Mel spectrogram and resize)
+                    mel_spectrogram = librosa.feature.melspectrogram(y=audio_data, sr=sample_rate)
+                    mel_spectrogram = resize(np.expand_dims(mel_spectrogram, axis=-1), target_shape)
+                    data.append(mel_spectrogram)
+                    labels.append(i)
+                    
+        return np.array(data), np.array(labels)
 
-  # Split data into training and testing sets
-  data, labels = load_and_preprocess_data(data_dir, classes)
-  labels = to_categorical(labels, num_classes=len(classes))  # Convert labels to one-hot encoding
-  X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.2, random_state=42)
+    # Split data into training and testing sets
+    data, labels = load_and_preprocess_data(data_dir, classes)
+    labels = to_categorical(labels, num_classes=len(classes))  # Convert labels to one-hot encoding
+    X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.2, random_state=42)
 
-  # Create a neural network model
-  input_shape = X_train[0].shape
-  input_layer = Input(shape=input_shape)
-  x = Conv2D(32, (3, 3), activation='relu')(input_layer)
-  x = MaxPooling2D((2, 2))(x)
-  x = Conv2D(64, (3, 3), activation='relu')(x)
-  x = MaxPooling2D((2, 2))(x)
-  x = Flatten()(x)
-  x = Dense(64, activation='relu')(x)
-  output_layer = Dense(len(classes), activation='softmax')(x)
-  model = Model(input_layer, output_layer)
+    # Create a neural network model
+    input_shape = X_train[0].shape
+    input_layer = Input(shape=input_shape)
+    x = Conv2D(32, (3, 3), activation='relu')(input_layer)
+    x = MaxPooling2D((2, 2))(x)
+    x = Conv2D(64, (3, 3), activation='relu')(x)
+    x = MaxPooling2D((2, 2))(x)
+    x = Flatten()(x)
+    x = Dense(64, activation='relu')(x)
+    output_layer = Dense(len(classes), activation='softmax')(x)
+    model = Model(input_layer, output_layer)
 #+end_src
+
+#+RESULTS:
+
+* Current directory
+#+begin_src python :results value output
+    import os
+    cwd = os.getcwd() + "/code.org"
+    file = print(os.path.basename(cwd))
+    print(cwd)
+#+end_src
+
+#+RESULTS:
+: code.org
+: /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/stuff/code.org
+* Stuff
+#+begin_src python :results value output
+  import os
+  import glob
+  directory = "/Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/training_data"
+  extension = "*.wav"
+
+  for audio_file in glob.glob(os.path.join(directory, extension)):
+          print(f"Found audio file {audio_file}")      
+#+end_src
+
+#+RESULTS:
+: Found audio file /Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/training_data/pluck.wav
+: Found audio file /Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/training_data/imp_005.wav
+: Found audio file /Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/training_data/rhythm.wav
+: Found audio file /Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/training_data/tone.wav
+: Found audio file /Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/training_data/fsustain-1.wav
+: Found audio file /Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/training_data/iter_009.wav
+: Found audio file /Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/training_data/noise.wav
 
 * Compiling the model
 #+begin_src python :tangle /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/model.py
@@ -131,8 +214,8 @@ Extracted from here: https://medium.com/@oluyaled/audio-classification-using-dee
 The 'dir' variable is a hack to handle emacs directories. This should be replaced by os.getcwd().
 #+begin_src python :tangle /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/save.py
   import sys
-  file_name = sys.argv[1]
-  # dir = os.getcwd()
+#  file_name = sys.argv[1]
+#  dir = os.getcwd()
   dir = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/'
   model.save(dir + 'audio_classification_imp_iter.keras')
 #+end_src
@@ -147,50 +230,52 @@ The 'dir' variable is a hack to handle emacs directories. This should be replace
 This proves to be working with limited tests. Next thing to do is work out the optimal settings for analysis below. Especially the spectrogram settings and we should also test with other spectrograms than mel.
 
 #+begin_src python :results value output :tangle /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/eval_model.py
+  import glob
   # Load the saved model
   # dir = os.getcwd()
-  dir = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/'
-  model = load_model(dir + 'audio_classification_imp_iter.keras')
+    dir = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/'
+    model = load_model(dir + 'audio_classification_imp_iter.keras')
 
-  # Define the target shape for input spectrograms
-  target_shape = (128, 128)
+    # Define the target shape for input spectrograms
+    target_shape = (128, 128)
 
-  # Define your class labels
-  classes = ['Impulse', 'Iteration']
+    # Define your class labels
+    classes = ['Impulse', 'Iteration', 'Vsustain', 'Fsustain']
 
-  # Function to preprocess and classify an audio file
-  def test_audio(file_path, model):
-      # Load and preprocess the audio file
-      audio_data, sample_rate = librosa.load(file_path, sr=None)
-      mel_spectrogram = librosa.feature.melspectrogram(y=audio_data, sr=sample_rate)
-      mel_spectrogram = resize(np.expand_dims(mel_spectrogram, axis=-1), target_shape)
-      mel_spectrogram = tf.reshape(mel_spectrogram, (1,) + target_shape + (1,))
-      
-      # Make predictions
-      predictions = model.predict(mel_spectrogram)
-      
-      # Get the class probabilities
-      class_probabilities = predictions[0]
-      
-      # Get the predicted class index
-      predicted_class_index = np.argmax(class_probabilities)
-      
-      return class_probabilities, predicted_class_index
+    # Function to preprocess and classify an audio file
+    def test_audio(file_path, model):
+        # Load and preprocess the audio file
+        audio_data, sample_rate = librosa.load(file_path, sr=None)
+        mel_spectrogram = librosa.feature.melspectrogram(y=audio_data, sr=sample_rate)
+        mel_spectrogram = resize(np.expand_dims(mel_spectrogram, axis=-1), target_shape)
+        mel_spectrogram = tf.reshape(mel_spectrogram, (1,) + target_shape + (1,))
+        
+        # Make predictions
+        predictions = model.predict(mel_spectrogram)
+        
+        # Get the class probabilities
+        class_probabilities = predictions[0]
+        
+        # Get the predicted class index
+        predicted_class_index = np.argmax(class_probabilities)
+        
+        return class_probabilities, predicted_class_index
 
-  # Test an audio file
-  test_audio_file = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/training_data/imp_005.wav'
-  class_probabilities, predicted_class_index = test_audio(test_audio_file, model)
+    # Test an audio file
+    test_audio_file = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/training_data/imp_005.wav'
 
-  # Display results for all classes
-  for i, class_label in enumerate(classes):
-      probability = class_probabilities[i]
-      print(f'Class: {class_label}, Probability: {probability:.4f}')
+    class_probabilities, predicted_class_index = test_audio(test_audio_file, model)
 
-  # Calculate and display the predicted class and accuracy
-  predicted_class = classes[predicted_class_index]
-  accuracy = class_probabilities[predicted_class_index]
-  print(f'The audio is classified as: {predicted_class}')
-  print(f'Accuracy: {accuracy:.4f}')
+    # Display results for all classes
+    for i, class_label in enumerate(classes):
+        probability = class_probabilities[i]
+        print(f'Class: {class_label}, Probability: {probability:.4f}')
+
+    # Calculate and display the predicted class and accuracy
+    predicted_class = classes[predicted_class_index]
+    accuracy = class_probabilities[predicted_class_index]
+    print(f'The audio is classified as: {predicted_class}')
+    print(f'Accuracy: {accuracy:.4f}')
 #+end_src
 
 * Test result

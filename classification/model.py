@@ -16,7 +16,7 @@ print(cwd)
 dir = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/'
 # Change this to cwd + '/' + when run as script.
 data_dir = dir + '/' + 'training_data'
-classes = ['Impulse', 'Iteration']
+classes = ['Impulse', 'Iteration', 'Vsustain', 'Fsustain']
 
 # Load and preprocess audio data
 def load_and_preprocess_data(data_dir, classes, target_shape=(128, 128)):
@@ -57,3 +57,6 @@ model = Model(input_layer, output_layer)
 model.compile(optimizer=Adam(learning_rate=0.001), loss='categorical_crossentropy', metrics=['accuracy'])
 
 model.fit(X_train, y_train, epochs=200, batch_size=32, validation_data=(X_test, y_test))
+
+dir = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/'
+model.save(dir + 'audio_classification_imp_iter.keras')
