@@ -209,3 +209,6 @@ __marimo__/
 /classification/training_data/Iteration/
 /classification/#eval_model.py#
 /classification/*.py#
+*.wav
+/classification/.DS_Store
+/classification/*.py

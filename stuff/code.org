@@ -262,20 +262,22 @@ This proves to be working with limited tests. Next thing to do is work out the o
         return class_probabilities, predicted_class_index
 
     # Test an audio file
-    test_audio_file = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/training_data/imp_005.wav'
+    test_audio_dir = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/training_data'
 
-    class_probabilities, predicted_class_index = test_audio(test_audio_file, model)
+    extension = "*.wav"
+    for test_audio_file in glob.glob(os.path.join(test_audio_dir, extension)):
+        class_probabilities, predicted_class_index = test_audio(test_audio_file, model)
 
-    # Display results for all classes
-    for i, class_label in enumerate(classes):
-        probability = class_probabilities[i]
-        print(f'Class: {class_label}, Probability: {probability:.4f}')
+        # Display results for all classes
+        for i, class_label in enumerate(classes):
+            probability = class_probabilities[i]
+            print(f'Class: {class_label}, Probability: {probability:.4f}')
 
-    # Calculate and display the predicted class and accuracy
-    predicted_class = classes[predicted_class_index]
-    accuracy = class_probabilities[predicted_class_index]
-    print(f'The audio is classified as: {predicted_class}')
-    print(f'Accuracy: {accuracy:.4f}')
+            # Calculate and display the predicted class and accuracy
+            predicted_class = classes[predicted_class_index]
+            accuracy = class_probabilities[predicted_class_index]
+            print(f'The audio {os.path.basename(test_audio_file)} is classified as: {predicted_class}')
+            print(f'Accuracy: {accuracy:.4f}')
 #+end_src
 
 * Test result
