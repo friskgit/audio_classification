@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 
 dir = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/training_data/'
 classes = ['Impulse', 'Iteration', 'Vsustain', 'Fsustain']
-data_dir = os.path.join(dir, classes[0])
-afile = os.path.join(data_dir, '005.wav')
+data_dir = os.path.join(dir, classes[1])
+afile = os.path.join(data_dir, '2.wav')
 
 print(afile)
 y, sr = librosa.load(afile, sr=None)

@@ -15,7 +15,7 @@ cwd = os.getcwd()
 print(cwd)
 dir = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/'
 # Change this to cwd + '/' + when run as script.
-data_dir = dir + '/' + 'training_data'
+data_dir = os.path.join(dir, 'training_data')
 classes = ['Impulse', 'Iteration', 'Vsustain', 'Fsustain']
 
 # Load and preprocess audio data
