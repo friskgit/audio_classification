@@ -1,4 +1,10 @@
+* Topics
+- Feature extraction
+- TARTYP: 2D analysis or one-for-all
+- Visualization
+- Testing dataset
 
+  
 * Sort files and copy (2d)
 Trying to fix this git error
 
@@ -243,15 +249,21 @@ This proves to be working with limited tests. Next thing to do is work out the o
     classes = ['Impulse', 'Iteration', 'Vsustain', 'Fsustain']
 
     # Function to preprocess and classify an audio file
-    def test_audio(file_path, model):
+    def test_audio(file_path, model, method):
         # Load and preprocess the audio file
         audio_data, sample_rate = librosa.load(file_path, sr=None)
-        mel_spectrogram = librosa.feature.melspectrogram(y=audio_data, sr=sample_rate)
-        mel_spectrogram = resize(np.expand_dims(mel_spectrogram, axis=-1), target_shape)
-        mel_spectrogram = tf.reshape(mel_spectrogram, (1,) + target_shape + (1,))
-        
+        match mode:
+            case mel 
+            audio_data = librosa.feature.melspectrogram(y=audio_data, sr=sample_rate)
+            audio_data = resize(np.expand_dims(audio_data, axis=-1), target_shape)
+            audio_data = tf.reshape(audio_data, (1,) + target_shape + (1,))
+            case mfcc
+            audio_data = librosa.feature.mfcc(y=audio_data, sr=sample_rate)
+            audio_data = resize(np.expand_dims(audio_data, axis=-1), target_shape)
+            audio_data = tf.reshape(audio_data, (1,) + target_shape + (1,))
+            
         # Make predictions
-        predictions = model.predict(mel_spectrogram)
+        predictions = model.predict(audio_data)
         
         # Get the class probabilities
         class_probabilities = predictions[0]
@@ -278,6 +290,97 @@ This proves to be working with limited tests. Next thing to do is work out the o
             accuracy = class_probabilities[predicted_class_index]
             print(f'The audio {os.path.basename(test_audio_file)} is classified as: {predicted_class}')
             print(f'Accuracy: {accuracy:.4f}')
+#+end_src
+
+* Testing librosa features
+#+name: plotme
+#+begin_src python :session :results value :noweb yes :tangle test_audio.py :var myvar=3
+  import os
+  import librosa
+  import numpy as np
+  import matplotlib.pyplot as plt
+
+  dir = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/training_data/'
+  classes = ['Impulse', 'Iteration', 'Vsustain', 'Fsustain']
+  data_dir = os.path.join(dir, classes[0])
+  afile = os.path.join(data_dir, '005.wav')
+
+  print(afile)
+  y, sr = librosa.load(afile, sr=None)
+#+end_src
+
+#+RESULTS: plotme
+
+** melspectrogram
+#+begin_src python :noweb yes :tangle melspec.py 
+  <<plotme>>
+  
+  S = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=128, fmax=8000)
+
+  fig, ax = plt.subplots()
+  S_dB = librosa.power_to_db(S, ref=np.max)
+  img = librosa.display.specshow(S_dB, x_axis='time', y_axis='mel', sr=sr, fmax=8000, ax=ax)
+  fig.colorbar(img, ax=ax, format='%+2.0f dB')
+  ax.set(title='Mel-frequency spectrogram')
+
+  plt.show()
+#+end_src
+
+** mfcc
+#+begin_src python :noweb yes :tangle mfcc.py
+  <<plotme>>
+  mfccs = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=40)
+  S = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=128, fmax=8000)
+  fig, ax = plt.subplots(nrows=2, sharex=True)
+  img = librosa.display.specshow(librosa.power_to_db(S, ref=np.max),
+                                 x_axis='time', y_axis='mel', fmax=8000,
+                                 ax=ax[0])
+  fig.colorbar(img, ax=[ax[0]])
+  ax[0].set(title='Mel spectrogram')
+  ax[0].label_outer()
+  img = librosa.display.specshow(mfccs, x_axis='time', ax=ax[1])
+  fig.colorbar(img, ax=[ax[1]])
+  ax[1].set(title='MFCC')
+  plt.show()
+#+end_src
+
+** beat detections
+#+begin_src python :noweb yes :tangle beat.py
+  <<plotme>>
+  import scipy.stats
+  onset_env = librosa.onset.onset_strength(y=y, sr=sr)
+  pulse = librosa.beat.plp(onset_envelope=onset_env, sr=sr)
+  # Or compute pulse with an alternate prior, like log-normal
+
+  prior = scipy.stats.lognorm(loc=np.log(120), scale=120, s=1)
+  pulse_lognorm = librosa.beat.plp(onset_envelope=onset_env, sr=sr,
+                                   prior=prior)
+  melspec = librosa.feature.melspectrogram(y=y, sr=sr)
+  fig, ax = plt.subplots(nrows=3, sharex=True)
+  librosa.display.specshow(librosa.power_to_db(melspec,
+                                               ref=np.max),
+                           x_axis='time', y_axis='mel', ax=ax[0])
+
+  ax[0].set(title='Mel spectrogram')
+  ax[0].label_outer()
+  ax[1].plot(librosa.times_like(onset_env),
+             librosa.util.normalize(onset_env),
+             label='Onset strength')
+  ax[1].plot(librosa.times_like(pulse),
+              librosa.util.normalize(pulse),
+               label='Predominant local pulse (PLP)')
+  ax[1].set(title='Uniform tempo prior [30, 300]')
+  ax[1].label_outer()
+  ax[2].plot(librosa.times_like(onset_env),
+               librosa.util.normalize(onset_env),
+               label='Onset strength')
+  ax[2].plot(librosa.times_like(pulse_lognorm),
+               librosa.util.normalize(pulse_lognorm),
+               label='Predominant local pulse (PLP)')
+  ax[2].set(title='Log-normal tempo prior, mean=120', xlim=[5, 20])
+  ax[2].legend()
+
+  plt.show()
 #+end_src
 
 * Test result

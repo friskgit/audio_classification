@@ -14,15 +14,21 @@ import glob
   classes = ['Impulse', 'Iteration', 'Vsustain', 'Fsustain']
 
   # Function to preprocess and classify an audio file
-  def test_audio(file_path, model):
+  def test_audio(file_path, model, method):
       # Load and preprocess the audio file
       audio_data, sample_rate = librosa.load(file_path, sr=None)
-      mel_spectrogram = librosa.feature.melspectrogram(y=audio_data, sr=sample_rate)
-      mel_spectrogram = resize(np.expand_dims(mel_spectrogram, axis=-1), target_shape)
-      mel_spectrogram = tf.reshape(mel_spectrogram, (1,) + target_shape + (1,))
-      
+      match mode:
+          case mel 
+          audio_data = librosa.feature.melspectrogram(y=audio_data, sr=sample_rate)
+          audio_data = resize(np.expand_dims(audio_data, axis=-1), target_shape)
+          audio_data = tf.reshape(audio_data, (1,) + target_shape + (1,))
+          case mfcc
+          audio_data = librosa.feature.mfcc(y=audio_data, sr=sample_rate)
+          audio_data = resize(np.expand_dims(audio_data, axis=-1), target_shape)
+          audio_data = tf.reshape(audio_data, (1,) + target_shape + (1,))
+          
       # Make predictions
-      predictions = model.predict(mel_spectrogram)
+      predictions = model.predict(audio_data)
       
       # Get the class probabilities
       class_probabilities = predictions[0]
