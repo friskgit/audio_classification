@@ -12,11 +12,12 @@ from tensorflow.keras.models import load_model
 
 # Define your folder structure
 cwd = os.getcwd()
-print(cwd)
+
 dir = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/'
 # Change this to cwd + '/' + when run as script.
 data_dir = os.path.join(dir, 'training_data')
 classes = ['Impulse', 'Iteration', 'Vsustain', 'Fsustain']
+print(data_dir)
 
 # Load and preprocess audio data
 def load_and_preprocess_data(data_dir, classes, target_shape=(128, 128)):
@@ -43,17 +44,17 @@ labels = to_categorical(labels, num_classes=len(classes))  # Convert labels to o
 X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.2, random_state=42)
 
 # Create a neural network model
-input_shape = X_train[0].shape
-input_layer = Input(shape=input_shape)
-x = Conv2D(32, (3, 3), activation='relu')(input_layer)
-x = MaxPooling2D((2, 2))(x)
-x = Conv2D(64, (3, 3), activation='relu')(x)
-x = MaxPooling2D((2, 2))(x)
-x = Flatten()(x)
-x = Dense(64, activation='relu')(x)
-output_layer = Dense(len(classes), activation='softmax')(x)
-model = Model(input_layer, output_layer)
+# input_shape = X_train[0].shape
+# input_layer = Input(shape=input_shape)
+# x = Conv2D(32, (3, 3), activation='relu')(input_layer)
+# x = MaxPooling2D((2, 2))(x)
+# x = Conv2D(64, (3, 3), activation='relu')(x)
+# x = MaxPooling2D((2, 2))(x)
+# x = Flatten()(x)
+# x = Dense(64, activation='relu')(x)
+# output_layer = Dense(len(classes), activation='softmax')(x)
+# model = Model(input_layer, output_layer)
 
-model.compile(optimizer=Adam(learning_rate=0.001), loss='categorical_crossentropy', metrics=['accuracy'])
+# model.compile(optimizer=Adam(learning_rate=0.001), loss='categorical_crossentropy', metrics=['accuracy'])
 
-model.fit(X_train, y_train, epochs=200, batch_size=32, validation_data=(X_test, y_test))
+# model.fit(X_train, y_train, epochs=200, batch_size=32, validation_data=(X_test, y_test))
