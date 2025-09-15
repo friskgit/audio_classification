@@ -6,7 +6,6 @@
 
   
 * Sort files and copy (2d)
-Trying to fix this git error
 
 This script relies on the dataset SCHAEFFER that should be extracted at ../../dataset/SCHAEFFER/ relative to this script. The dataset may be downloaded from https://www.kaggle.com/datasets/maurizioberta/test-schaeffer?resource=download
 
