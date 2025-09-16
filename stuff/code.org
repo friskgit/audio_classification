@@ -109,6 +109,208 @@ To find additional classifiers its easy to run the script with different key wor
   echo "Done!\n"
 #+end_src
 
+* Sort files and copy full TARTYP
+
+** Map
+All children of .object.labels:
+|                                              | formed                 | impulse         | formed            |
+|                                              | held sounds            |                 | iterative sounds  |
+|----------------------------------------------+------------------------+-----------------+-------------------|
+| type in SCHAEFFER                            | sustain.'Flat sustain' | sustain.Impulse | sustain.Iteration |
+|----------------------------------------------+------------------------+-----------------+-------------------|
+| .'mass-type'.'Harmonic sound'                | HarmSus                | HarmImp         | HarmIter          |
+|----------------------------------------------+------------------------+-----------------+-------------------|
+| .'mass-type'.'Noisy sound'                   | NoiseSus               | NoiseImp        | NoiseIter         |
+|----------------------------------------------+------------------------+-----------------+-------------------|
+| .'mass-type'.'Vacillating sustain'           | VacillatingSus         |                 |                   |
+| .'mass-type'.'Composite or Stratified sound' | -                      | CompositeImp    | CompositeIter     |
+|----------------------------------------------+------------------------+-----------------+-------------------|
+** Script
+
+This script relies on the dataset SCHAEFFER that should be extracted at ../../dataset/SCHAEFFER/ relative to this script. The dataset may be downloaded from https://www.kaggle.com/datasets/maurizioberta/test-schaeffer?resource=download
+
+This script parses through the SCHAEFFER dataset and looks for the keywords in the variables keyA and keyB. It goes through the following steps:
+1. clear the directories defined by dirA and dirB
+2. loop through the directories in the SCHEAFFER set
+3. loops through the json in each directory and parses it for keyA and keyB
+4. copies over the found files to the respective directory in /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/classification/training_data
+5. closes open files
+
+To find additional classifiers its easy to run the script with different key words. Beware of multi word keys which has not been tested.
+
+#+begin_src shell :results output :tangle ./import_data.sh
+  #!/bin/bash
+  dataset="../../dataset/SCHAEFFER/"
+
+  harmsus=("HarmSus" "Harmonic Sound" "Flat sustain")
+  harmimp=("HarmImp" "Harmonic Sound" "Impulse")
+  harmiter=HarmIter
+  noisesus=NoiseSus
+  noiseimp=NoiseImp
+  noiseiter=NoiseIter
+  vacillatingsus=VacillatingSus
+  compositeimp=CompositeImp
+  compositeiter=CompositeIter 
+  base="../classification/training_data"
+  keyA=0
+  keyB="$base""$harmimp"
+  keyC="$base""$harmiter"
+  keyD="$base""$noisesus"
+  keyE="$base""$noiseimp"
+  keyF="$base""$noiseiter"
+  keyG="$base""$vacillatingsus"
+  keyH="$base""$compositeimp"
+  keyI="$base""$compositeiter"
+  pathA='.object.labels."Flat sustain"'
+  pathB='.object.labels.Impulse'
+  pathC='.object.labels.Iteration'
+
+  echo $base/${harmsus[0]}
+  # echo "Clearing directories...\n"
+  # for directory in keyA keyB keyC keyD keyE keyF keyG keyH keyI
+  # do
+  #     rm -rf $d/*.wav
+  # done
+
+  echo "Copying files from dataset...\n\n"
+  for d in "$dataset"*/; do
+      for j in "$d"*.json; do
+      	if test -f "$j"
+      	then
+      	    if  [[ "$(cat "$j" | jq -r '.object.labels."mass-type"')" == "Harmonic sound" ]] &&  [[ "$(cat "$j" | jq -r '.object.labels.sustain')" == "Flat sustain" ]]; then
+      		if [ ! -d "$dirB" ]; then
+      		    mkdir "$dirB"
+      		fi
+  		 echo "$d""`cat "$j" | jq -r '.object.filename'`"
+      		# cp "$d""`cat "$j" | jq -r '.object.filename'`" "$dirB"
+      	    fi
+      	fi
+      done
+  done
+
+  echo "Done!\n"
+#+end_src
+
+#+RESULTS:
+#+begin_example
+../classification/training_data/HarmSus
+Copying files from dataset...\n\n
+../../dataset/SCHAEFFER/Antonietta Turano/canto armonicorisonanza.wav
+../../dataset/SCHAEFFER/Bruno Emanuele Reggiani/Sound object - Drone (ML).wav
+../../dataset/SCHAEFFER/Dario Gatto/Sax multiphonic 1_1.wav
+../../dataset/SCHAEFFER/Gabriele Canova/16_TEXTURE ARMONICA.wav
+../../dataset/SCHAEFFER/Giorgio Labagnara/Suono16.wav
+../../dataset/SCHAEFFER/Giorgio Labagnara/Suono4.wav
+../../dataset/SCHAEFFER/Michele Caldera/Bass Minimoog Slide Down.wav
+../../dataset/SCHAEFFER/Padrini Federico/12.wav
+../../dataset/SCHAEFFER/Padrini Federico/7.wav
+../../dataset/SCHAEFFER/SALVATORE CADINU/031.wav
+../../dataset/SCHAEFFER/Tommaso Cherchi/Impact_1.wav
+Done!\n
+#+end_example
+
+* SCHAEFFER database labels
+#+begin_src json
+  {
+    "Type":{
+        "0":"Soundscape",
+        "1":"Drone",
+        "2":"Chop",
+        "3":"Sub",
+        "4":"Glitch",
+        "5":"Impact",
+        "6":"Stab (attacco risonanza)",
+        "7":"Synthesis",
+        "8":"Vocal",
+        "9":"Scratch",
+        "10":"Crackle",
+        "11":"Noise",
+        "12":"Textural",
+        "13":"Instrumental",
+        "14":"Chirp",
+        "15":"Percussive",
+        "16":"Honk",
+        "17":"Choral"
+    },
+    "Mass type":{
+        "0":"Sinusoidal sound",
+        "1":"Harmonic sound",
+        "2":"Inharmonic sound",
+        "3":"Cluster sound",
+        "4":"Breathlike sound",
+        "5":"Noisy sound",
+        "6":"Composite or Stratified sound"
+    },
+    "Complexity":{
+        "0":"Very simple element",
+        "1":"Relatively simple element",
+        "2":"Moderately complex element",
+        "3":"Relatively complex element",
+        "4":"Very complex element",
+        "5":"Simple emergence from complex details"
+    },
+    "Onset":{
+        "0":"Sharp onset",
+        "1":"Marked onset",
+        "2":"Flat onset",
+        "3":"Swelled onset",
+        "4":"Fade in"
+    },
+    "Sustain":{
+        "0":"Flat sustain",
+        "1":"Vacillating sustain",
+        "2":"Ostinato ",
+        "3":"Decaying sustain",
+        "4":"Uplifting sustain",
+        "5":"Iteration",
+        "6":"Accumulation"
+    },
+    "Offset":{
+        "0":"Sharp ending",
+        "1":"Marked ending",
+        "2":"Flat ending",
+        "3":"Soft ending",
+        "4":"Laissez vibrer",
+        "5":"Interrupted resonance",
+        "6":"Fade out"
+    },
+    "Pulse typology":{
+        "0":"Impulse",
+        "1":"Regular pulse train",
+        "2":"Irregular pulse train",
+        "3":"No pulse"
+    },
+    "Processes":{
+        "0":"Chorus",
+        "1":"Tremolo",
+        "2":"Distortion",
+        "3":"Fuzzy",
+        "4":"Granular",
+        "5":"Loop",
+        "6":"Bit reduction",
+        "7":"Reverb",
+        "8":"Filtered",
+        "9":"Resonators",
+        "10":"Flanger",
+        "11":"Pitch-shift",
+        "12":"Stretched",
+        "13":"Delay",
+        "14":"Eco",
+        "15":"Vibrato",
+        "16":"Filter Modulation",
+        "17":"Glissando"
+    },
+    "Directionality":{
+        "0":"Forward push",
+        "1":"Evaded forward push",
+        "2":"Suspended forward push",
+        "3":"Backward push",
+        "4":"Neutral"
+    }
+}
+
+#+end_src
+
 * Model
 Extracted from here: https://medium.com/@oluyaled/audio-classification-using-deep-learning-and-tensorflow-a-step-by-step-guide-5327467ee9ab
 
