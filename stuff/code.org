@@ -3,7 +3,6 @@
 - TARTYP: 2D analysis or one-for-all
 - Visualization
 - Testing dataset
-
   
 * Sort files and copy (2d)
 
@@ -109,8 +108,7 @@ To find additional classifiers its easy to run the script with different key wor
   echo "Done!\n"
 #+end_src
 
-* Sort files and copy full TARTYP
-** Map
+* Sort files and copy full TARTYP** Map
 All children of .object.labels:
 |                                              | formed                 | impulse                  | formed                                 |
 |                                              | held sounds            |                          | iterative sounds                       |
@@ -118,14 +116,14 @@ All children of .object.labels:
 | type in SCHAEFFER                            | sustain.'Flat sustain' | 'pulse-typology'.Impulse | sustain.Iteration                      |
 |                                              |                        |                          | 'pulse-typology'.'Regular pulse train' |
 |----------------------------------------------+------------------------+--------------------------+----------------------------------------|
-| .'mass-type'.'Harmonic sound'                | HarmSus                | HarmImp                  | HarmIter                               |
+| .'mass-type'.'Harmonic sound'                | HarmSus - N            | HarmImp - N'             | HarmIter - N''                         |
 | .'mass-type'.'Sinusoidal sound'              |                        |                          |                                        |
 |----------------------------------------------+------------------------+--------------------------+----------------------------------------|
-| .'mass-type'.'Noisy sound'                   | NoiseSus               | NoiseImp                 | NoiseIter                              |
+| .'mass-type'.'Noisy sound'                   | NoiseSus - X           | NoiseImp - X'            | NoiseIter - X''                        |
 | .type.noise                                  |                        |                          |                                        |
 |----------------------------------------------+------------------------+--------------------------+----------------------------------------|
-| .'mass-type'.'Vacillating sustain'           | CompositeSus           |                          |                                        |
-| .'mass-type'.'Composite or Stratified sound' | -                      | CompositeImp             | CompositeIter                          |
+| .'mass-type'.'Vacillating sustain'           | CompositeSus - Y       |                          |                                        |
+| .'mass-type'.'Composite or Stratified sound' | -                      | CompositeImp - Y'        | CompositeIter - Y''                    |
 |----------------------------------------------+------------------------+--------------------------+----------------------------------------|
 ** Script
 
@@ -472,10 +470,8 @@ Extracted from here: https://medium.com/@oluyaled/audio-classification-using-dee
   from tensorflow.keras.models import load_model
 
   # Define your folder structure
-  cwd = os.getcwd()
+  dir = os.getcwd()
 
-  dir = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/'
-  # Change this to cwd + '/' + when run as script.
   data_dir = os.path.join(dir, 'training_data')
   # classes = ['Impulse', 'Iteration', 'Vsustain', 'Fsustain']
   classes = ['HarmSus', 'HarmImp', 'HarmIter', 'NoiseSus', 'NoiseImp', 'NoiseIter', 'CompositeSus', 'CompositeImp', 'CompositeIter']
@@ -523,7 +519,7 @@ Extracted from here: https://medium.com/@oluyaled/audio-classification-using-dee
 * Current directory
 #+begin_src python :results value output
     import os
-    cwd = os.getcwd() + "/code.org"
+    cwd = os.path.join(os.getcwd(), "code.org")
     file = print(os.path.basename(cwd))
     print(cwd)
 #+end_src
@@ -531,6 +527,23 @@ Extracted from here: https://medium.com/@oluyaled/audio-classification-using-dee
 #+RESULTS:
 : code.org
 : /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/stuff/code.org
+
+* Compare strings
+#+begin_src python :results value output
+import os
+dir = os.getcwd()
+print(dir)
+file = os.path.join(dir, '../classification/training_data/testing/N1_impulse.wav')
+print(os.path.basename(file))
+if('N0' in os.path.basename(file)):
+     print("yes")
+
+#+end_src
+
+#+RESULTS:
+: /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/stuff
+: N1_impulse.wav
+
 * Stuff
 #+begin_src python :results value output
   import os
@@ -564,11 +577,9 @@ Extracted from here: https://medium.com/@oluyaled/audio-classification-using-dee
 * Save the model
 The 'dir' variable is a hack to handle emacs directories. This should be replaced by os.getcwd().
 #+begin_src python :tangle /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/model.py
-  import sys
 #  file_name = sys.argv[1]
 #  dir = os.getcwd()
-  dir = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/'
-  model.save(dir + 'audio_classification.keras')
+model.save(os.path.jpoin(dir, 'audio_classification.keras'))
 #+end_src
 
 #+RESULTS:
@@ -583,54 +594,60 @@ The 'dir' variable is a hack to handle emacs directories. This should be replace
 This proves to be working with limited tests. Next thing to do is work out the optimal settings for analysis below. Especially the spectrogram settings and we should also test with other spectrograms than mel.
 
 #+begin_src python :results value output :tangle /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/eval_model.py
-  import glob
-  # Load the saved model
-  # dir = os.getcwd()
-  dir = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/'
-  model = load_model(dir + 'audio_classification.keras')
+test_accuracy=model.evaluate(X_test,y_test,verbose=0)
+print(test_accuracy[1])
 
-  # Define the target shape for input spectrograms
-  target_shape = (128, 128)
+import glob
 
-  # Define your class labels
-  classes = ['HarmSus', 'HarmImp', 'HarmIter', 'NoiseSus', 'NoiseImp', 'NoiseIter', 'CompositeSus', 'CompositeImp', 'CompositeIter']
+# Load the saved model
+dir = os.getcwd()
+model = load_model(os.path.join(dir, 'audio_classification.keras'))
 
-  # Function to preprocess and classify an audio file
-  def test_audio(file_path, model):
-      # Load and preprocess the audio file
-      audio_data, sample_rate = librosa.load(file_path, sr=None)
-      audio_data = librosa.feature.melspectrogram(y=audio_data, sr=sample_rate)
-      audio_data = resize(np.expand_dims(audio_data, axis=-1), target_shape)
-      audio_data = tf.reshape(audio_data, (1,) + target_shape + (1,))
-          
-      # Make predictions
-      predictions = model.predict(audio_data)
-      
-      # Get the class probabilities
-      class_probabilities = predictions[0]
-      
-      # Get the predicted class index
-      predicted_class_index = np.argmax(class_probabilities)
-      
-      return class_probabilities, predicted_class_index
+# Define the target shape for input spectrograms
+target_shape = (256, 128)
 
-  # Test an audio file
-  test_audio_dir = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/training_data'
+# Define your class labels
+classes = ['HarmSus', 'HarmImp', 'HarmIter', 'NoiseSus', 'NoiseImp', 'NoiseIter', 'CompositeSus', 'CompositeImp', 'CompositeIter']
+tartyp = ['N0, N1, N2, X0, X1, X2, Y0, Y1, Y2']
+# Function to preprocess and classify an audio file
+def test_audio(file_path, model):
+    # Load and preprocess the audio file
+    audio_data, sample_rate = librosa.load(file_path, sr=None)
+    audio_data = librosa.feature.melspectrogram(y=audio_data, sr=sample_rate)
+    audio_data = resize(np.expand_dims(audio_data, axis=-1), target_shape)
+    audio_data = tf.reshape(audio_data, (1,) + target_shape + (1,))
+        
+    # Make predictions
+    predictions = model.predict(audio_data)
+    
+    # Get the class probabilities
+    class_probabilities = predictions[0]
+    
+    # Get the predicted class index
+    predicted_class_index = np.argmax(class_probabilities)
+    
+    return class_probabilities, predicted_class_index
 
-  extension = "*.wav"
-  for test_audio_file in glob.glob(os.path.join(test_audio_dir, extension)):
-      class_probabilities, predicted_class_index = test_audio(test_audio_file, model)
+# Test an audio file
+test_audio_dir = os.path.join(dir, 'training_data/testing/')
 
-      # Display results for all classes
-      for i, class_label in enumerate(classes):
-          probability = class_probabilities[i]
-          print(f'Class: {class_label}, Probability: {probability:.4f}')
+print(test_audio_dir)
 
-      # Calculate and display the predicted class and accuracy
-      predicted_class = classes[predicted_class_index]
-      accuracy = class_probabilities[predicted_class_index]
-      print(f'The audio {os.path.basename(test_audio_file)} is classified as: {predicted_class}')
-      print(f'Accuracy: {accuracy:.4f}')
+extension = "*.wav"
+for test_audio_file in glob.glob(os.path.join(test_audio_dir, extension)):
+    class_probabilities, predicted_class_index = test_audio(test_audio_file, model)
+    print(f'{os.path.basename(test_audio_file)}, , ,')
+    print(f'Class, Probability, Accuracy, Classified as, Analyzed as')
+    # Display results for all classes
+    for i, class_label in enumerate(classes):
+        probability = class_probabilities[i]
+        print(f'{class_label}, {probability:.4f}')
+
+    # Calculate and display the predicted class and accuracy
+    predicted_class = classes[predicted_class_index]
+#    if('{os.path.basename(test_audio_file)}' )
+    accuracy = class_probabilities[predicted_class_index]
+    print(f', , {accuracy:.4f}, {predicted_class}')
 #+end_src
 
 * Testing librosa features
