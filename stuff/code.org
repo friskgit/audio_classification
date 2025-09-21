@@ -110,21 +110,23 @@ To find additional classifiers its easy to run the script with different key wor
 #+end_src
 
 * Sort files and copy full TARTYP
-
 ** Map
 All children of .object.labels:
-|                                              | formed                 | impulse         | formed            |
-|                                              | held sounds            |                 | iterative sounds  |
-|----------------------------------------------+------------------------+-----------------+-------------------|
-| type in SCHAEFFER                            | sustain.'Flat sustain' | sustain.Impulse | sustain.Iteration |
-|----------------------------------------------+------------------------+-----------------+-------------------|
-| .'mass-type'.'Harmonic sound'                | HarmSus                | HarmImp         | HarmIter          |
-|----------------------------------------------+------------------------+-----------------+-------------------|
-| .'mass-type'.'Noisy sound'                   | NoiseSus               | NoiseImp        | NoiseIter         |
-|----------------------------------------------+------------------------+-----------------+-------------------|
-| .'mass-type'.'Vacillating sustain'           | VacillatingSus         |                 |                   |
-| .'mass-type'.'Composite or Stratified sound' | -                      | CompositeImp    | CompositeIter     |
-|----------------------------------------------+------------------------+-----------------+-------------------|
+|                                              | formed                 | impulse                  | formed                                 |
+|                                              | held sounds            |                          | iterative sounds                       |
+|----------------------------------------------+------------------------+--------------------------+----------------------------------------|
+| type in SCHAEFFER                            | sustain.'Flat sustain' | 'pulse-typology'.Impulse | sustain.Iteration                      |
+|                                              |                        |                          | 'pulse-typology'.'Regular pulse train' |
+|----------------------------------------------+------------------------+--------------------------+----------------------------------------|
+| .'mass-type'.'Harmonic sound'                | HarmSus                | HarmImp                  | HarmIter                               |
+| .'mass-type'.'Sinusoidal sound'              |                        |                          |                                        |
+|----------------------------------------------+------------------------+--------------------------+----------------------------------------|
+| .'mass-type'.'Noisy sound'                   | NoiseSus               | NoiseImp                 | NoiseIter                              |
+| .type.noise                                  |                        |                          |                                        |
+|----------------------------------------------+------------------------+--------------------------+----------------------------------------|
+| .'mass-type'.'Vacillating sustain'           | CompositeSus           |                          |                                        |
+| .'mass-type'.'Composite or Stratified sound' | -                      | CompositeImp             | CompositeIter                          |
+|----------------------------------------------+------------------------+--------------------------+----------------------------------------|
 ** Script
 
 This script relies on the dataset SCHAEFFER that should be extracted at ../../dataset/SCHAEFFER/ relative to this script. The dataset may be downloaded from https://www.kaggle.com/datasets/maurizioberta/test-schaeffer?resource=download
@@ -138,76 +140,217 @@ This script parses through the SCHAEFFER dataset and looks for the keywords in t
 
 To find additional classifiers its easy to run the script with different key words. Beware of multi word keys which has not been tested.
 
-#+begin_src shell :results output :tangle ./import_data.sh
-  #!/bin/bash
-  dataset="../../dataset/SCHAEFFER/"
+#+begin_src shell :results output :tangle ./import_main.sh :noweb yes
+    #!/bin/bash
+    dataset="../../dataset/SCHAEFFER/"
 
-  harmsus=("HarmSus" "Harmonic Sound" "Flat sustain")
-  harmimp=("HarmImp" "Harmonic Sound" "Impulse")
-  harmiter=HarmIter
-  noisesus=NoiseSus
-  noiseimp=NoiseImp
-  noiseiter=NoiseIter
-  vacillatingsus=VacillatingSus
-  compositeimp=CompositeImp
-  compositeiter=CompositeIter 
-  base="../classification/training_data"
-  keyA=0
-  keyB="$base""$harmimp"
-  keyC="$base""$harmiter"
-  keyD="$base""$noisesus"
-  keyE="$base""$noiseimp"
-  keyF="$base""$noiseiter"
-  keyG="$base""$vacillatingsus"
-  keyH="$base""$compositeimp"
-  keyI="$base""$compositeiter"
-  pathA='.object.labels."Flat sustain"'
-  pathB='.object.labels.Impulse'
-  pathC='.object.labels.Iteration'
+    harmsus=("HarmSus" "Harmonic sound" "Sinsoidal sound" "Flat sustain")
+    harmimp=("HarmImp" "Harmonic sound" "Sinsoidal sound" "Impulse")
+    harmiter=("HarmIter" "Harmonic sound" "Sinusoidal sound" "Iteration" "Regular pulse train")
+    
+    noisesus=("NoiseSus" "Noisy sound" "Noise" "Flat sustain")
+    noiseimp=("NoiseImp" "Noisy sound" "Noise" "Impulse")
+    noiseiter=("NoiseIter" "Noisy sound" "Noise" "Flat sustain"  "Regular pulse train")
+    
+    vacillatingsus=("CompositeSus" "Composite or Stratified sound" "Vacillating sustain" "Flat sustain")
+    compositeimp=("CompositeImp" "Vacillating sustain" "Composite or Stratified sound" "Impulse")
+    compositeiter=("CompositeIter" "Vacillating sustain" "Composite or Stratified sound" "Regular pulse train" "Iteration")
+    base="../classification/training_data"
 
-  echo $base/${harmsus[0]}
-  # echo "Clearing directories...\n"
-  # for directory in keyA keyB keyC keyD keyE keyF keyG keyH keyI
-  # do
-  #     rm -rf $d/*.wav
-  # done
 
-  echo "Copying files from dataset...\n\n"
-  for d in "$dataset"*/; do
-      for j in "$d"*.json; do
-      	if test -f "$j"
-      	then
-      	    if  [[ "$(cat "$j" | jq -r '.object.labels."mass-type"')" == "Harmonic sound" ]] &&  [[ "$(cat "$j" | jq -r '.object.labels.sustain')" == "Flat sustain" ]]; then
-      		if [ ! -d "$dirB" ]; then
-      		    mkdir "$dirB"
-      		fi
-  		 echo "$d""`cat "$j" | jq -r '.object.filename'`"
-      		# cp "$d""`cat "$j" | jq -r '.object.filename'`" "$dirB"
-      	    fi
-      	fi
-      done
-  done
+    echo $base/${harmsus[0]}
+    # echo "Clearing directories...\n"
+    # for directory in keyA keyB keyC keyD keyE keyF keyG keyH keyI
+    # do
+    #     rm -rf $d/*.wav
+    # done
 
-  echo "Done!\n"
+    echo "Copying files from dataset...\n\n"
+    for d in "$dataset"*/; do
+        for j in "$d"*.json; do
+            if test -f "$j"
+            then
+  #  	    <<harmonic_row>>
+  #   	    <<noise_row>>
+               <<vacillating_row>>
+            fi
+        done
+    done
+
+    echo "Done!\n"
 #+end_src
 
 #+RESULTS:
-#+begin_example
-../classification/training_data/HarmSus
-Copying files from dataset...\n\n
-../../dataset/SCHAEFFER/Antonietta Turano/canto armonicorisonanza.wav
-../../dataset/SCHAEFFER/Bruno Emanuele Reggiani/Sound object - Drone (ML).wav
-../../dataset/SCHAEFFER/Dario Gatto/Sax multiphonic 1_1.wav
-../../dataset/SCHAEFFER/Gabriele Canova/16_TEXTURE ARMONICA.wav
-../../dataset/SCHAEFFER/Giorgio Labagnara/Suono16.wav
-../../dataset/SCHAEFFER/Giorgio Labagnara/Suono4.wav
-../../dataset/SCHAEFFER/Michele Caldera/Bass Minimoog Slide Down.wav
-../../dataset/SCHAEFFER/Padrini Federico/12.wav
-../../dataset/SCHAEFFER/Padrini Federico/7.wav
-../../dataset/SCHAEFFER/SALVATORE CADINU/031.wav
-../../dataset/SCHAEFFER/Tommaso Cherchi/Impact_1.wav
-Done!\n
-#+end_example
+: ../classification/training_data/HarmSus
+: Copying files from dataset...\n\n
+: Done!\n
+
+#+name: harmonic_row
+#+begin_src shell :results outpu :n oweb yes
+
+  ##############################
+    # Harmonic sustain
+    if [ ! -d "$base/${harmsus[0]}" ]; then
+        mkdir "$base/${harmsus[0]}"
+    fi
+    if  [[ "$(cat "$j" | jq -r '.object.labels."mass-type"')" == ${harmsus[1]} ]] &&
+    	[[ "$(cat "$j" | jq -r '.object.labels.sustain')" == ${harmsus[3]} ]]; then
+        #  		echo "$d""`cat "$j" | jq -r '.object.filename'`"
+        cp "$d""`cat "$j" | jq -r '.object.filename'`" $base/${harmsus[0]}
+    fi
+    # Harmonic sustain (Sinusoidal)
+    if  [[ "$(cat "$j" | jq -r '.object.labels."mass-type"')" == ${harmsus[2]} ]] &&
+    	[[ "$(cat "$j" | jq -r '.object.labels.sustain')" == ${harmsus[3]} ]]; then
+        # echo "$d""`cat "$j" | jq -r '.object.filename'`"
+        cp "$d""`cat "$j" | jq -r '.object.filename'`" $base/${harmsus[0]}
+    fi
+    ##############################
+    # Harmonic impulse
+    if [ ! -d "$base/${harmimp[0]}" ]; then
+        mkdir "$base/${harmimp[0]}"
+    fi
+    if  [[ "$(cat "$j" | jq -r '.object.labels."mass-type"')" == ${harmimp[1]} ]] &&
+    	[[ "$(cat "$j" | jq -r '.object.labels."pulse-typology"')" == ${harmimp[3]} ]]; then
+        #        		echo "HarmImp" "$d""`cat "$j" | jq -r '.object.filename'`"
+        cp "$d""`cat "$j" | jq -r '.object.filename'`" $base/${harmimp[0]}
+    fi
+    if  [[ "$(cat "$j" | jq -r '.object.labels."mass-type"')" == ${harmimp[2]} ]] &&
+    	[[ "$(cat "$j" | jq -r '.object.labels."pulse-typology"')" == ${harmimp[3]} ]]; then
+        # echo "HarmImp" "$d""`cat "$j" | jq -r '.object.filename'`"
+        cp "$d""`cat "$j" | jq -r '.object.filename'`" $base/${harmimp[0]}
+    fi
+    ##############################
+    # Harmonic iteration
+    if [ ! -d "$base/${harmiter[0]}" ]; then
+        mkdir "$base/${harmiter[0]}"
+    fi
+    if  [[ "$(cat "$j" | jq -r '.object.labels."mass-type"')" == ${harmiter[1]} ]] &&
+    	[[ "$(cat "$j" | jq -r '.object.labels.sustain')" == ${harmiter[3]} ]]; then
+
+        # echo "Harmiter0" "$d""`cat "$j" | jq -r '.object.filename'`"
+        cp "$d""`cat "$j" | jq -r '.object.filename'`" $base/${harmiter[0]}
+    fi
+    if  [[ "$(cat "$j" | jq -r '.object.labels."mass-type"')" == ${harmiter[2]} ]] &&
+    	[[ "$(cat "$j" | jq -r '.object.labels.sustain')" == ${harmiter[3]} ]]; then
+        # echo "HarmIter1" "$d""`cat "$j" | jq -r '.object.filename'`"
+        cp "$d""`cat "$j" | jq -r '.object.filename'`" $base/${harmiter[0]}
+    fi
+    if  [[ "$(cat "$j" | jq -r '.object.labels."mass-type"')" == ${harmiter[1]} ]] &&
+    	[[ "$(cat "$j" | jq -r '.object.labels."pulse-typology"')" == ${harmiter[4]} ]]; then
+        # echo "HarmIter2" "$d""`cat "$j" | jq -r '.object.filename'`"
+        cp "$d""`cat "$j" | jq -r '.object.filename'`" $base/${harmiter[0]}
+    fi
+#+end_src
+
+#+name: noise_row
+#+begin_src shell :results output :noweb yes
+  ##############################
+  # Noise sustain
+  if [ ! -d "$base/${noisesus[0]}" ]; then
+      mkdir "$base/${noisesus[0]}"
+  fi
+  if  [[ "$(cat "$j" | jq -r '.object.labels."mass-type"')" == ${noisesus[1]} ]] &&
+      	[[ "$(cat "$j" | jq -r '.object.labels.sustain')" == ${noisesus[3]} ]]; then
+      # echo "Noisesus0" "$d""`cat "$j" | jq -r '.object.filename'`"
+      cp "$d""`cat "$j" | jq -r '.object.filename'`" $base/${noisesus[0]}
+  fi
+  if  [[ "$(cat "$j" | jq -r '.object.labels.type')" == *${noisesus[2]}* ]] &&
+      	[[ "$(cat "$j" | jq -r '.object.labels.sustain')" == ${noisesus[3]} ]]; then
+      # echo "Noisesus1" "$d""`cat "$j" | jq -r '.object.filename'`"
+      cp "$d""`cat "$j" | jq -r '.object.filename'`" $base/${noisesus[0]}
+  fi
+  ##############################
+  # Noise impulse
+  if [ ! -d "$base/${noiseimp[0]}" ]; then
+      mkdir "$base/${noiseimp[0]}"
+  fi
+  if  [[ "$(cat "$j" | jq -r '.object.labels."mass-type"')" == ${noiseimp[1]} ]] &&
+      	[[ "$(cat "$j" | jq -r '.object.labels."pulse-typology"')" == ${noiseimp[3]} ]]; then
+      # echo "Noiseimp0" "$d""`cat "$j" | jq -r '.object.filename'`"
+      cp "$d""`cat "$j" | jq -r '.object.filename'`" $base/${noiseimp[0]}
+  fi
+  if  [[ "$(cat "$j" | jq -r '.object.labels.type')" == *${noiseimp[2]}* ]] &&
+      	[[ "$(cat "$j" | jq -r '.object.labels."pulse-typology"')" == ${noiseimp[3]} ]]; then
+      # echo "Noiseimp1" "$d""`cat "$j" | jq -r '.object.filename'`"
+      cp "$d""`cat "$j" | jq -r '.object.filename'`" $base/${noiseimp[0]}
+  fi
+  ##############################
+  # Noise iteration
+  if [ ! -d "$base/${noiseiter[0]}" ]; then
+      mkdir "$base/${noiseiter[0]}"
+  fi
+  if  [[ "$(cat "$j" | jq -r '.object.labels."mass-type"')" == ${noiseiter[1]} ]] &&
+      	[[ "$(cat "$j" | jq -r '.object.labels.sustain')" == ${noiseiter[3]} ]]; then
+      # echo "Noiseiter0" "$d""`cat "$j" | jq -r '.object.filename'`"
+      cp "$d""`cat "$j" | jq -r '.object.filename'`" $base/${noiseiter[0]}
+  fi
+  if  [[ "$(cat "$j" | jq -r '.object.labels.type')" == *${noiseiter[2]}* ]] &&
+      	[[ "$(cat "$j" | jq -r '.object.labels.sustain')" == ${noiseiter[3]} ]]; then
+      # echo "Noiseiter1" "$d""`cat "$j" | jq -r '.object.filename'`"
+      cp "$d""`cat "$j" | jq -r '.object.filename'`" $base/${noiseiter[0]}
+  fi
+  if  [[ "$(cat "$j" | jq -r '.object.labels."mass-type"')" == ${noiseiter[1]} ]] &&
+      	[[ "$(cat "$j" | jq -r '.object.labels."pulse-typology"')" == ${noiseiter[4]} ]]; then
+      # echo "Noiseiter2" "$d""`cat "$j" | jq -r '.object.filename'`"
+      cp "$d""`cat "$j" | jq -r '.object.filename'`" $base/${noiseiter[0]}
+  fi
+#+end_src
+
+#+RESULTS:
+#+name: vacillating_row
+#+begin_src shell :noweb yes
+  ##############################
+  # Noise sustain
+  if [ ! -d "$base/${vacillatingsus[0]}" ]; then
+      mkdir "$base/${vacillatingsus[0]}"
+  fi
+  if  [[ "$(cat "$j" | jq -r '.object.labels."mass-type"')" == ${vacillatingsus[1]} ]] &&
+      	[[ "$(cat "$j" | jq -r '.object.labels.sustain')" == ${vacillatingsus[3]} ]]; then
+      # echo "Vacillatingsus0" "$d""`cat "$j" | jq -r '.object.filename'`"
+      cp "$d""`cat "$j" | jq -r '.object.filename'`" $base/${vacillatingsus[0]}
+  fi
+  if  [[ "$(cat "$j" | jq -r '.object.labels."mass-type"')" == *${vacillatingsus[1]}* ]] &&
+      	[[ "$(cat "$j" | jq -r '.object.labels.sustain')" == ${vacillatingsus[2]} ]]; then
+      # echo "Vacillatingsus1" "$d""`cat "$j" | jq -r '.object.filename'`"
+      cp "$d""`cat "$j" | jq -r '.object.filename'`" $base/${vacillatingsus[0]}
+  fi
+  ##############################
+  # Noise impulse
+  if [ ! -d "$base/${compositeimp[0]}" ]; then
+      mkdir "$base/${compositeimp[0]}"
+  fi
+  if  [[ "$(cat "$j" | jq -r '.object.labels.sustain')" == ${compositeimp[1]} ]] &&
+      	[[ "$(cat "$j" | jq -r '.object.labels."pulse-typology"')" == ${compositeimp[3]} ]]; then
+      # echo "Compositeimp0" "$d""`cat "$j" | jq -r '.object.filename'`"
+      cp "$d""`cat "$j" | jq -r '.object.filename'`" $base/${compositeimp[0]}
+  fi
+  if  [[ "$(cat "$j" | jq -r '.object.labels."mass-type"')" == *${compositeimp[2]}* ]] &&
+      	[[ "$(cat "$j" | jq -r '.object.labels."pulse-typology"')" == ${compositeimp[3]} ]]; then
+      # echo "Compositeimp1" "$d""`cat "$j" | jq -r '.object.filename'`"
+      cp "$d""`cat "$j" | jq -r '.object.filename'`" $base/${compositeimp[0]}
+  fi
+  ##############################
+  # Noise iteration
+  if [ ! -d "$base/${compositeiter[0]}" ]; then
+      mkdir "$base/${compositeiter[0]}"
+  fi
+  if  [[ "$(cat "$j" | jq -r '.object.labels.sustain')" == ${compositeiter[1]} ]] &&
+      	[[ "$(cat "$j" | jq -r '.object.labels.sustain')" == ${compositeiter[4]} ]]; then
+      # echo "Compositeiter0" "$d""`cat "$j" | jq -r '.object.filename'`"
+      cp "$d""`cat "$j" | jq -r '.object.filename'`" $base/${compositeiter[0]}
+  fi
+  if  [[ "$(cat "$j" | jq -r '.object.labels."mass-type"')" == *${compositeiter[2]}* ]] &&
+      	[[ "$(cat "$j" | jq -r '.object.labels."pulse-typology"')" == ${compositeiter[3]} ]]; then
+      # echo "Compositeiter1" "$d""`cat "$j" | jq -r '.object.filename'`"
+      cp "$d""`cat "$j" | jq -r '.object.filename'`" $base/${compositeiter[0]}
+  fi
+  if  [[ "$(cat "$j" | jq -r '.object.labels.sustain')" == ${compositeiter[1]} ]] &&
+      	[[ "$(cat "$j" | jq -r '.object.labels."pulse-typology"')" == ${compositeiter[3]} ]]; then
+      # echo "Compositeiter2" "$d""`cat "$j" | jq -r '.object.filename'`"
+      cp "$d""`cat "$j" | jq -r '.object.filename'`" $base/${compositeiter[0]}
+  fi
+
+#+end_src
 
 * SCHAEFFER database labels
 #+begin_src json
@@ -259,7 +402,7 @@ Done!\n
     "Sustain":{
         "0":"Flat sustain",
         "1":"Vacillating sustain",
-        "2":"Ostinato ",
+        "2":"Ostinato",
         "3":"Decaying sustain",
         "4":"Uplifting sustain",
         "5":"Iteration",
@@ -319,6 +462,7 @@ Extracted from here: https://medium.com/@oluyaled/audio-classification-using-dee
   import librosa
   import numpy as np
   import tensorflow as tf
+  import sys
   from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense
   from tensorflow.keras.models import Model
   from tensorflow.keras.optimizers import Adam
@@ -333,11 +477,12 @@ Extracted from here: https://medium.com/@oluyaled/audio-classification-using-dee
   dir = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/'
   # Change this to cwd + '/' + when run as script.
   data_dir = os.path.join(dir, 'training_data')
-  classes = ['Impulse', 'Iteration', 'Vsustain', 'Fsustain']
+  # classes = ['Impulse', 'Iteration', 'Vsustain', 'Fsustain']
+  classes = ['HarmSus', 'HarmImp', 'HarmIter', 'NoiseSus', 'NoiseImp', 'NoiseIter', 'CompositeSus', 'CompositeImp', 'CompositeIter']
   print(data_dir)
-  
+
   # Load and preprocess audio data
-  def load_and_preprocess_data(data_dir, classes, target_shape=(128, 128)):
+  def load_and_preprocess_data(data_dir, classes, target_shape=(256, 128)):
       data = []
       labels = []
       
@@ -413,18 +558,20 @@ Extracted from here: https://medium.com/@oluyaled/audio-classification-using-dee
 
 * Training the model
 #+begin_src python :tangle /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/model.py
-  model.fit(X_train, y_train, epochs=200, batch_size=32, validation_data=(X_test, y_test))
+  model.fit(X_train, y_train, epochs=250, batch_size=64, validation_data=(X_test, y_test))
 #+end_src
 
 * Save the model
 The 'dir' variable is a hack to handle emacs directories. This should be replaced by os.getcwd().
-#+begin_src python :tangle /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/save.py
+#+begin_src python :tangle /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/model.py
   import sys
 #  file_name = sys.argv[1]
 #  dir = os.getcwd()
   dir = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/'
-  model.save(dir + 'audio_classification_imp_iter.keras')
+  model.save(dir + 'audio_classification.keras')
 #+end_src
+
+#+RESULTS:
 
 * Model evaluation
 #+begin_src python :tangle /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/eval_model.py
@@ -440,13 +587,13 @@ This proves to be working with limited tests. Next thing to do is work out the o
   # Load the saved model
   # dir = os.getcwd()
   dir = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/'
-  model = load_model(dir + 'audio_classification_imp_iter.keras')
+  model = load_model(dir + 'audio_classification.keras')
 
   # Define the target shape for input spectrograms
   target_shape = (128, 128)
 
   # Define your class labels
-  classes = ['Impulse', 'Iteration', 'Vsustain', 'Fsustain']
+  classes = ['HarmSus', 'HarmImp', 'HarmIter', 'NoiseSus', 'NoiseImp', 'NoiseIter', 'CompositeSus', 'CompositeImp', 'CompositeIter']
 
   # Function to preprocess and classify an audio file
   def test_audio(file_path, model):
@@ -479,11 +626,11 @@ This proves to be working with limited tests. Next thing to do is work out the o
           probability = class_probabilities[i]
           print(f'Class: {class_label}, Probability: {probability:.4f}')
 
-          # Calculate and display the predicted class and accuracy
-          predicted_class = classes[predicted_class_index]
-          accuracy = class_probabilities[predicted_class_index]
-          print(f'The audio {os.path.basename(test_audio_file)} is classified as: {predicted_class}')
-          print(f'Accuracy: {accuracy:.4f}')
+      # Calculate and display the predicted class and accuracy
+      predicted_class = classes[predicted_class_index]
+      accuracy = class_probabilities[predicted_class_index]
+      print(f'The audio {os.path.basename(test_audio_file)} is classified as: {predicted_class}')
+      print(f'Accuracy: {accuracy:.4f}')
 #+end_src
 
 * Testing librosa features

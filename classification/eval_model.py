@@ -5,13 +5,13 @@ import glob
 # Load the saved model
 # dir = os.getcwd()
 dir = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/'
-model = load_model(dir + 'audio_classification_imp_iter.keras')
+model = load_model(dir + 'audio_classification.keras')
 
 # Define the target shape for input spectrograms
-target_shape = (128, 128)
+target_shape = (256, 128)
 
 # Define your class labels
-classes = ['Impulse', 'Iteration', 'Vsustain', 'Fsustain']
+classes = ['HarmSus', 'HarmImp', 'HarmIter', 'NoiseSus', 'NoiseImp', 'NoiseIter', 'CompositeSus', 'CompositeImp', 'CompositeIter']
 
 # Function to preprocess and classify an audio file
 def test_audio(file_path, model):
@@ -44,8 +44,8 @@ for test_audio_file in glob.glob(os.path.join(test_audio_dir, extension)):
         probability = class_probabilities[i]
         print(f'Class: {class_label}, Probability: {probability:.4f}')
 
-        # Calculate and display the predicted class and accuracy
-        predicted_class = classes[predicted_class_index]
-        accuracy = class_probabilities[predicted_class_index]
-        print(f'The audio {os.path.basename(test_audio_file)} is classified as: {predicted_class}')
-        print(f'Accuracy: {accuracy:.4f}')
+    # Calculate and display the predicted class and accuracy
+    predicted_class = classes[predicted_class_index]
+    accuracy = class_probabilities[predicted_class_index]
+    print(f'The audio {os.path.basename(test_audio_file)} is classified as: {predicted_class}')
+    print(f'Accuracy: {accuracy:.4f}')
