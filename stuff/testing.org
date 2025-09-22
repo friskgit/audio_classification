@@ -1,0 +1,1209 @@
+* Testing results
+** Model settings
+** Results
+*** [2025-09-21 Sun]
+
+****  Settings:
+ - target_shape=(256, 128)
+ - epochs 250s
+ - librosa.feature.melspectrogram
+  
+**** Results: 2 matches
+
+| [2025-09-21 Sun]         |             |          |               |               |
+|--------------------------+-------------+----------+---------------+---------------|
+| N0-alto_flute.wav        |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0000 |          |               |               |
+| HarmImp                  |      1.0000 |          |               |               |
+| HarmIter                 |      0.0000 |          |               |               |
+| NoiseSus                 |      0.0000 |          |               |               |
+| NoiseImp                 |      0.0000 |          |               |               |
+| NoiseIter                |      0.0000 |          |               |               |
+| CompositeSus             |      0.0000 |          |               |               |
+| CompositeImp             |      0.0000 |          |               |               |
+| CompositeIter            |      0.0000 |          |               |               |
+|                          |             |   1.0000 | HarmImp       | HarmSus       |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| X2-rhythm.wav            |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0000 |          |               |               |
+| HarmImp                  |      0.0000 |          |               |               |
+| HarmIter                 |      0.0000 |          |               |               |
+| NoiseSus                 |      0.0000 |          |               |               |
+| NoiseImp                 |      0.0000 |          |               |               |
+| NoiseIter                |      0.0000 |          |               |               |
+| CompositeSus             |      0.0000 |          |               |               |
+| CompositeImp             |      0.0000 |          |               |               |
+| CompositeIter            |      1.0000 |          |               |               |
+|                          |             |   1.0000 | CompositeIter | NoiseIter     |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| X1-impulse.wav           |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0001 |          |               |               |
+| HarmImp                  |      0.0008 |          |               |               |
+| HarmIter                 |      0.0006 |          |               |               |
+| NoiseSus                 |      0.0622 |          |               |               |
+| NoiseImp                 |      0.0982 |          |               |               |
+| NoiseIter                |      0.0550 |          |               |               |
+| CompositeSus             |      0.0081 |          |               |               |
+| CompositeImp             |      0.7379 |          |               |               |
+| CompositeIter            |      0.0371 |          |               |               |
+|                          |             |   0.7379 | CompositeImp  | NoiseImp      |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| N2-repeating.wav         |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0000 |          |               |               |
+| HarmImp                  |      0.9991 |          |               |               |
+| HarmIter                 |      0.0000 |          |               |               |
+| NoiseSus                 |      0.0000 |          |               |               |
+| NoiseImp                 |      0.0009 |          |               |               |
+| NoiseIter                |      0.0000 |          |               |               |
+| CompositeSus             |      0.0000 |          |               |               |
+| CompositeImp             |      0.0000 |          |               |               |
+| CompositeIter            |      0.0000 |          |               |               |
+|                          |             |   0.9991 | HarmImp       | HarmIter      |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| N0-Pitched_Sculpture.wav |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0000 |          |               |               |
+| HarmImp                  |      0.0000 |          |               |               |
+| HarmIter                 |      0.0000 |          |               |               |
+| NoiseSus                 |      0.0028 |          |               |               |
+| NoiseImp                 |      0.0189 |          |               |               |
+| NoiseIter                |      0.0010 |          |               |               |
+| CompositeSus             |      0.4108 |          |               |               |
+| CompositeImp             |      0.0236 |          |               |               |
+| CompositeIter            |      0.5429 |          |               |               |
+|                          |             |   0.5429 | CompositeIter | HarmSus       |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| X0-tone.wav              |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0000 |          |               |               |
+| HarmImp                  |      0.0000 |          |               |               |
+| HarmIter                 |      0.0000 |          |               |               |
+| NoiseSus                 |      0.0000 |          |               |               |
+| NoiseImp                 |      0.0000 |          |               |               |
+| NoiseIter                |      0.0007 |          |               |               |
+| CompositeSus             |      0.9984 |          |               |               |
+| CompositeImp             |      0.0000 |          |               |               |
+| CompositeIter            |      0.0010 |          |               |               |
+|                          |             |   0.9984 | CompositeSus  | NoiseSus      |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| X0-noise.wav             |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.1084 |          |               |               |
+| HarmImp                  |      0.1144 |          |               |               |
+| HarmIter                 |      0.1153 |          |               |               |
+| NoiseSus                 |      0.1085 |          |               |               |
+| NoiseImp                 |      0.0973 |          |               |               |
+| NoiseIter                |      0.1178 |          |               |               |
+| CompositeSus             |      0.1216 |          |               |               |
+| CompositeImp             |      0.1076 |          |               |               |
+| CompositeIter            |      0.1092 |          |               |               |
+|                          |             |   0.1216 | CompositeSus  | NoiseSus      |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| Y2-repeating_hits.wav    |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0000 |          |               |               |
+| HarmImp                  |      0.0000 |          |               |               |
+| HarmIter                 |      0.0000 |          |               |               |
+| NoiseSus                 |      0.0000 |          |               |               |
+| NoiseImp                 |      0.0000 |          |               |               |
+| NoiseIter                |      0.0000 |          |               |               |
+| CompositeSus             |      1.0000 |          |               |               |
+| CompositeImp             |      0.0000 |          |               |               |
+| CompositeIter            |      0.0000 |          |               |               |
+|                          |             |   1.0000 | CompositeSus  | CompositeIter |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| Y1-repeating_hits.wav    |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0000 |          |               |               |
+| HarmImp                  |      0.0000 |          |               |               |
+| HarmIter                 |      0.0000 |          |               |               |
+| NoiseSus                 |      0.0000 |          |               |               |
+| NoiseImp                 |      0.0000 |          |               |               |
+| NoiseIter                |      0.0000 |          |               |               |
+| CompositeSus             |      1.0000 |          |               |               |
+| CompositeImp             |      0.0000 |          |               |               |
+| CompositeIter            |      0.0000 |          |               |               |
+|                          |             |   1.0000 | CompositeSus  | CompositeImp  |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| Y2-noise.wav             |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0028 |          |               |               |
+| HarmImp                  |      0.0006 |          |               |               |
+| HarmIter                 |      0.0080 |          |               |               |
+| NoiseSus                 |      0.4091 |          |               |               |
+| NoiseImp                 |      0.0096 |          |               |               |
+| NoiseIter                |      0.1682 |          |               |               |
+| CompositeSus             |      0.1030 |          |               |               |
+| CompositeImp             |      0.0637 |          |               |               |
+| CompositeIter            |      0.2351 |          |               |               |
+|                          |             |   0.4091 | NoiseSus      | CompositeIter |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| N1-imp_005.wav           |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0000 |          |               |               |
+| HarmImp                  |      0.9973 |          |               |               |
+| HarmIter                 |      0.0001 |          |               |               |
+| NoiseSus                 |      0.0001 |          |               |               |
+| NoiseImp                 |      0.0002 |          |               |               |
+| NoiseIter                |      0.0001 |          |               |               |
+| CompositeSus             |      0.0019 |          |               |               |
+| CompositeImp             |      0.0002 |          |               |               |
+| CompositeIter            |      0.0001 |          |               |               |
+|                          |             |   0.9973 | HarmImp       | HarmImp       |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| N1-impulse.wav           |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0098 |          |               |               |
+| HarmImp                  |      0.0019 |          |               |               |
+| HarmIter                 |      0.0191 |          |               |               |
+| NoiseSus                 |      0.0039 |          |               |               |
+| NoiseImp                 |      0.0018 |          |               |               |
+| NoiseIter                |      0.1990 |          |               |               |
+| CompositeSus             |      0.7049 |          |               |               |
+| CompositeImp             |      0.0212 |          |               |               |
+| CompositeIter            |      0.0384 |          |               |               |
+|                          |             |   0.7049 | CompositeSus  | HarmImp       |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| N1-impulse1.wav          |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0002 |          |               |               |
+| HarmImp                  |      0.0001 |          |               |               |
+| HarmIter                 |      0.0000 |          |               |               |
+| NoiseSus                 |      0.0002 |          |               |               |
+| NoiseImp                 |      0.6600 |          |               |               |
+| NoiseIter                |      0.0494 |          |               |               |
+| CompositeSus             |      0.0001 |          |               |               |
+| CompositeImp             |      0.2896 |          |               |               |
+| CompositeIter            |      0.0003 |          |               |               |
+|                          |             |   0.6600 | NoiseImp      | HarmImp       |
+
+
+| Y0-nois_sustain.wav |             |          |            |              |
+| Class               | Probability | Accuracy | Classified | Analyzed     |
+| HarmSus             |      0.0005 |          |            |              |
+| HarmImp             |      0.0016 |          |            |              |
+| HarmIter            |      0.0007 |          |            |              |
+| NoiseSus            |      0.7369 |          |            |              |
+| NoiseImp            |      0.0001 |          |            |              |
+| NoiseIter           |      0.0088 |          |            |              |
+| CompositeSus        |      0.2490 |          |            |              |
+| CompositeImp        |      0.0005 |          |            |              |
+| CompositeIter       |      0.0020 |          |            |              |
+|                     |             |   0.7369 | NoiseSus   | CompositeSus |
+
+*** [2025-09-21 Sun]
+**** Settings
+- target_shape=(256, 256)
+- epochs 200s
+- librosa.feature.melspectrogram
+  Best result so far
+**** Results 4 matches
+
+| N0-alto_flute.wav        |             |          |               |               |   |               |        |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |   |               |        |
+| HarmSus                  |      0.0000 |          |               |               |   |               |        |
+| HarmImp                  |      1.0000 |          |               |               |   |               |        |
+| HarmIter                 |      0.0000 |          |               |               |   |               |        |
+| NoiseSus                 |      0.0000 |          |               |               |   |               |        |
+| NoiseImp                 |      0.0000 |          |               |               |   |               |        |
+| NoiseIter                |      0.0000 |          |               |               |   |               |        |
+| CompositeSus             |      0.0000 |          |               |               |   |               |        |
+| CompositeImp             |      0.0000 |          |               |               |   |               |        |
+| CompositeIter            |      0.0000 |          |               |               |   |               |        |
+|                          |             |   1.0000 | HarmImp       | HarmSus       |   |               |        |
+|                          |             |          |               |               |   |               |        |
+|                          |             |          |               |               |   |               |        |
+| X2-rhythm.wav            |             |          |               |               |   |               |        |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |   |               |        |
+| HarmSus                  |      0.0000 |          |               |               |   |               |        |
+| HarmImp                  |      0.0000 |          |               |               |   |               |        |
+| HarmIter                 |      0.0000 |          |               |               |   |               |        |
+| NoiseSus                 |      0.0000 |          |               |               |   |               |        |
+| NoiseImp                 |      0.0000 |          |               |               |   |               |        |
+| NoiseIter                |      0.6333 |          |               |               |   |               |        |
+| CompositeSus             |      0.0000 |          |               |               |   |               |        |
+| CompositeImp             |      0.0000 |          |               |               |   |               |        |
+| CompositeIter            |      0.3667 |          |               |               |   |               |        |
+|                          |             |   0.6333 | NoiseIter     | NoiseIter     |   |               |        |
+|                          |             |          |               |               |   |               |        |
+|                          |             |          |               |               |   |               |        |
+| X1-impulse.wav           |             |          |               |               |   |               |        |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |   |               |        |
+| HarmSus                  |      0.0003 |          |               |               |   |               |        |
+| HarmImp                  |      0.0021 |          |               |               |   |               |        |
+| HarmIter                 |      0.0026 |          |               |               |   |               |        |
+| NoiseSus                 |      0.0084 |          |               |               |   |               |        |
+| NoiseImp                 |      0.0132 |          |               |               |   |               |        |
+| NoiseIter                |      0.0113 |          |               |               |   |               |        |
+| CompositeSus             |      0.0044 |          |               |               |   |               |        |
+| CompositeImp             |      0.6353 |          |               |               |   |               |        |
+| CompositeIter            |      0.3224 |          |               |               |   |               |        |
+|                          |             |   0.6353 | CompositeImp  | NoiseImp      |   |               |        |
+|                          |             |          |               |               |   |               |        |
+|                          |             |          |               |               |   |               |        |
+| N2-repeating.wav         |             |          |               |               |   |               |        |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |   |               |        |
+| HarmSus                  |      0.0000 |          |               |               |   |               |        |
+| HarmImp                  |      0.0000 |          |               |               |   |               |        |
+| HarmIter                 |      0.0000 |          |               |               |   |               |        |
+| NoiseSus                 |      0.0000 |          |               |               |   |               |        |
+| NoiseImp                 |      0.0000 |          |               |               |   |               |        |
+| NoiseIter                |      0.3477 |          |               |               |   |               |        |
+| CompositeSus             |      0.0001 |          |               |               |   |               |        |
+| CompositeImp             |      0.6522 |          |               |               |   |               |        |
+| CompositeIter            |      0.0000 |          |               |               |   |               |        |
+|                          |             |   0.6522 | CompositeImp  | HarmIter      |   |               |        |
+|                          |             |          |               |               |   |               |        |
+|                          |             |          |               |               |   |               |        |
+| N0-Pitched_Sculpture.wav |             |          |               |               |   |               |        |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |   |               |        |
+| HarmSus                  |      0.0003 |          |               |               |   |               |        |
+| HarmImp                  |      0.0027 |          |               |               |   |               |        |
+| HarmIter                 |      0.0150 |          |               |               |   |               |        |
+| NoiseSus                 |      0.0038 |          |               |               |   |               |        |
+| NoiseImp                 |      0.3087 |          |               |               |   |               |        |
+| NoiseIter                |      0.0014 |          |               |               |   |               |        |
+| CompositeSus             |      0.6591 |          |               |               |   |               |        |
+| CompositeImp             |      0.0075 |          |               |               |   |               |        |
+| CompositeIter            |      0.0015 |          |               |               |   |               |        |
+|                          |             |   0.6591 | CompositeSus  | HarmSus       |   |               |        |
+|                          |             |          |               |               |   |               |        |
+|                          |             |          |               |               |   |               |        |
+| X0-tone.wav              |             |          |               |               |   |               |        |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |   |               |        |
+| HarmSus                  |      0.0011 |          |               |               |   |               |        |
+| HarmImp                  |      0.0004 |          |               |               |   |               |        |
+| HarmIter                 |      0.0034 |          |               |               |   |               |        |
+| NoiseSus                 |      0.0007 |          |               |               |   |               |        |
+| NoiseImp                 |      0.0073 |          |               |               |   |               |        |
+| NoiseIter                |      0.0423 |          |               |               |   |               |        |
+| CompositeSus             |      0.8311 |          |               |               |   |               |        |
+| CompositeImp             |      0.1123 |          |               |               |   |               |        |
+| CompositeIter            |      0.0013 |          |               |               |   |               |        |
+|                          |             |   0.8311 | CompositeSus  | NoiseSus      |   |               |        |
+|                          |             |          |               |               |   |               |        |
+|                          |             |          |               |               |   |               |        |
+| X0-noise.wav             |             |          |               |               |   |               |        |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |   |               |        |
+| HarmSus                  |      0.0925 |          |               |               |   |               |        |
+| HarmImp                  |      0.0821 |          |               |               |   |               |        |
+| HarmIter                 |      0.0960 |          |               |               |   |               |        |
+| NoiseSus                 |      0.1201 |          |               |               |   |               |        |
+| NoiseImp                 |      0.1013 |          |               |               |   |               |        |
+| NoiseIter                |      0.1307 |          |               |               |   |               |        |
+| CompositeSus             |      0.1486 |          |               |               |   |               |        |
+| CompositeImp             |      0.0994 |          |               |               |   |               |        |
+| CompositeIter            |      0.1295 |          |               |               |   |               |        |
+|                          |             |   0.1486 | CompositeSus  | NoiseSus      |   |               |        |
+|                          |             |          |               |               |   |               |        |
+|                          |             |          |               |               |   |               |        |
+| Y2-repeating_hits.wav    |             |          |               |               |   |               |        |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |   |               |        |
+| HarmSus                  |      0.0000 |          |               |               |   |               |        |
+| HarmImp                  |      0.0000 |          |               |               |   |               |        |
+| HarmIter                 |      0.0000 |          |               |               |   |               |        |
+| NoiseSus                 |      0.0000 |          |               |               |   |               |        |
+| NoiseImp                 |      0.0000 |          |               |               |   |               |        |
+| NoiseIter                |      0.0000 |          |               |               |   |               |        |
+| CompositeSus             |      1.0000 |          |               |               |   |               |        |
+| CompositeImp             |      0.0000 |          |               |               |   |               |        |
+| CompositeIter            |      0.0000 |          |               |               |   | CompositeIter | 0.0000 |
+|                          |             |   1.0000 | CompositeSus  | CompositeIter |   |               |        |
+|                          |             |          |               |               |   |               |        |
+|                          |             |          |               |               |   |               |        |
+| Y1-repeating_hits.wav    |             |          |               |               |   |               |        |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |   |               |        |
+| HarmSus                  |      0.0000 |          |               |               |   |               |        |
+| HarmImp                  |      0.0000 |          |               |               |   |               |        |
+| HarmIter                 |      0.0000 |          |               |               |   |               |        |
+| NoiseSus                 |      0.0000 |          |               |               |   |               |        |
+| NoiseImp                 |      0.0000 |          |               |               |   |               |        |
+| NoiseIter                |      0.0000 |          |               |               |   |               |        |
+| CompositeSus             |      0.0000 |          |               |               |   |               |        |
+| CompositeImp             |      0.0000 |          |               |               |   |               |        |
+| CompositeIter            |      1.0000 |          |               |               |   |               |        |
+|                          |             |   1.0000 | CompositeIter | CompositeImp  |   |               |        |
+|                          |             |          |               |               |   |               |        |
+|                          |             |          |               |               |   |               |        |
+| Y2-noise.wav             |             |          |               |               |   |               |        |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |   |               |        |
+| HarmSus                  |      0.0022 |          |               |               |   |               |        |
+| HarmImp                  |      0.0014 |          |               |               |   |               |        |
+| HarmIter                 |      0.0042 |          |               |               |   |               |        |
+| NoiseSus                 |      0.1807 |          |               |               |   |               |        |
+| NoiseImp                 |      0.0125 |          |               |               |   |               |        |
+| NoiseIter                |      0.0394 |          |               |               |   |               |        |
+| CompositeSus             |      0.2345 |          |               |               |   |               |        |
+| CompositeImp             |      0.0155 |          |               |               |   |               |        |
+| CompositeIter            |      0.5097 |          |               |               |   |               |        |
+|                          |             |   0.5097 | CompositeIter | CompositeIter |   |               |        |
+|                          |             |          |               |               |   |               |        |
+|                          |             |          |               |               |   |               |        |
+| N1-imp_005.wav           |             |          |               |               |   |               |        |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |   |               |        |
+| HarmSus                  |      0.0001 |          |               |               |   |               |        |
+| HarmImp                  |      0.9988 |          |               |               |   |               |        |
+| HarmIter                 |      0.0000 |          |               |               |   |               |        |
+| NoiseSus                 |      0.0000 |          |               |               |   |               |        |
+| NoiseImp                 |      0.0004 |          |               |               |   |               |        |
+| NoiseIter                |      0.0003 |          |               |               |   |               |        |
+| CompositeSus             |      0.0000 |          |               |               |   |               |        |
+| CompositeImp             |      0.0002 |          |               |               |   |               |        |
+| CompositeIter            |      0.0001 |          |               |               |   |               |        |
+|                          |             |   0.9988 | HarmImp       | HarmImp       |   |               |        |
+|                          |             |          |               |               |   |               |        |
+|                          |             |          |               |               |   |               |        |
+| N1-impulse.wav           |             |          |               |               |   |               |        |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |   |               |        |
+| HarmSus                  |      0.0099 |          |               |               |   |               |        |
+| HarmImp                  |      0.0112 |          |               |               |   |               |        |
+| HarmIter                 |      0.1045 |          |               |               |   |               |        |
+| NoiseSus                 |      0.0020 |          |               |               |   |               |        |
+| NoiseImp                 |      0.0122 |          |               |               |   |               |        |
+| NoiseIter                |      0.1223 |          |               |               |   |               |        |
+| CompositeSus             |      0.5002 |          |               |               |   |               |        |
+| CompositeImp             |      0.0112 |          |               |               |   |               |        |
+| CompositeIter            |      0.2265 |          |               |               |   |               |        |
+|                          |             |   0.5002 | CompositeSus  | HarmImp       |   |               |        |
+|                          |             |          |               |               |   |               |        |
+|                          |             |          |               |               |   |               |        |
+| N1-impulse1.wav          |             |          |               |               |   |               |        |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |   |               |        |
+| HarmSus                  |      0.0001 |          |               |               |   |               |        |
+| HarmImp                  |      0.0013 |          |               |               |   |               |        |
+| HarmIter                 |      0.0002 |          |               |               |   |               |        |
+| NoiseSus                 |      0.0012 |          |               |               |   |               |        |
+| NoiseImp                 |      0.0134 |          |               |               |   |               |        |
+| NoiseIter                |      0.0023 |          |               |               |   |               |        |
+| CompositeSus             |      0.0033 |          |               |               |   |               |        |
+| CompositeImp             |      0.9753 |          |               |               |   |               |        |
+| CompositeIter            |      0.0029 |          |               |               |   |               |        |
+|                          |             |   0.9753 | CompositeImp  | HarmImp       |   |               |        |
+|                          |             |          |               |               |   |               |        |
+|                          |             |          |               |               |   |               |        |
+| Y0-nois_sustain.wav      |             |          |               |               |   |               |        |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |   |               |        |
+| HarmSus                  |      0.0005 |          |               |               |   |               |        |
+| HarmImp                  |      0.0012 |          |               |               |   |               |        |
+| HarmIter                 |      0.0001 |          |               |               |   |               |        |
+| NoiseSus                 |      0.2162 |          |               |               |   |               |        |
+| NoiseImp                 |      0.0003 |          |               |               |   |               |        |
+| NoiseIter                |      0.0143 |          |               |               |   |               |        |
+| CompositeSus             |      0.7634 |          |               |               |   |               |        |
+| CompositeImp             |      0.0003 |          |               |               |   |               |        |
+| CompositeIter            |      0.0036 |          |               |               |   |               |        |
+|                          |             |   0.7634 | CompositeSus  | CompositeSus  |   |               |        |
+
+**** Settings
+- target_shape=(256, 256)
+- epochs 400s
+- librosa.feature.melspectrogram
+  
+**** Results 2 matches
+
+
+| N0-alto_flute.wav        |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0000 |          |               |               |
+| HarmImp                  |      0.0012 |          |               |               |
+| HarmIter                 |      0.0000 |          |               |               |
+| NoiseSus                 |      0.0000 |          |               |               |
+| NoiseImp                 |      0.0000 |          |               |               |
+| NoiseIter                |      0.0000 |          |               |               |
+| CompositeSus             |      0.9988 |          |               |               |
+| CompositeImp             |      0.0000 |          |               |               |
+| CompositeIter            |      0.0000 |          |               |               |
+|                          |             |   0.9988 | CompositeSus  | HarmSus       |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| X2-rhythm.wav            |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0000 |          |               |               |
+| HarmImp                  |      0.0000 |          |               |               |
+| HarmIter                 |      0.0000 |          |               |               |
+| NoiseSus                 |      0.0000 |          |               |               |
+| NoiseImp                 |      0.0000 |          |               |               |
+| NoiseIter                |      0.0000 |          |               |               |
+| CompositeSus             |      1.0000 |          |               |               |
+| CompositeImp             |      0.0000 |          |               |               |
+| CompositeIter            |      0.0000 |          |               |               |
+|                          |             |   1.0000 | CompositeSus  | NoiseIter     |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| X1-impulse.wav           |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0006 |          |               |               |
+| HarmImp                  |      0.0008 |          |               |               |
+| HarmIter                 |      0.0006 |          |               |               |
+| NoiseSus                 |      0.0407 |          |               |               |
+| NoiseImp                 |      0.0598 |          |               |               |
+| NoiseIter                |      0.0088 |          |               |               |
+| CompositeSus             |      0.0095 |          |               |               |
+| CompositeImp             |      0.7691 |          |               |               |
+| CompositeIter            |      0.1100 |          |               |               |
+|                          |             |   0.7691 | CompositeImp  | NoiseImp      |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| N2-repeating.wav         |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0000 |          |               |               |
+| HarmImp                  |      0.0000 |          |               |               |
+| HarmIter                 |      0.0000 |          |               |               |
+| NoiseSus                 |      0.0000 |          |               |               |
+| NoiseImp                 |      0.0000 |          |               |               |
+| NoiseIter                |      1.0000 |          |               |               |
+| CompositeSus             |      0.0000 |          |               |               |
+| CompositeImp             |      0.0000 |          |               |               |
+| CompositeIter            |      0.0000 |          |               |               |
+|                          |             |   1.0000 | NoiseIter     | HarmIter      |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| N0-Pitched_Sculpture.wav |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0050 |          |               |               |
+| HarmImp                  |      0.0069 |          |               |               |
+| HarmIter                 |      0.0015 |          |               |               |
+| NoiseSus                 |      0.0137 |          |               |               |
+| NoiseImp                 |      0.1370 |          |               |               |
+| NoiseIter                |      0.0063 |          |               |               |
+| CompositeSus             |      0.6289 |          |               |               |
+| CompositeImp             |      0.1949 |          |               |               |
+| CompositeIter            |      0.0059 |          |               |               |
+|                          |             |   0.6289 | CompositeSus  | HarmSus       |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| X0-tone.wav              |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0000 |          |               |               |
+| HarmImp                  |      0.0000 |          |               |               |
+| HarmIter                 |      0.0000 |          |               |               |
+| NoiseSus                 |      0.0007 |          |               |               |
+| NoiseImp                 |      0.0001 |          |               |               |
+| NoiseIter                |      0.0002 |          |               |               |
+| CompositeSus             |      0.9966 |          |               |               |
+| CompositeImp             |      0.0023 |          |               |               |
+| CompositeIter            |      0.0001 |          |               |               |
+|                          |             |   0.9966 | CompositeSus  | NoiseSus      |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| X0-noise.wav             |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.1069 |          |               |               |
+| HarmImp                  |      0.1034 |          |               |               |
+| HarmIter                 |      0.1131 |          |               |               |
+| NoiseSus                 |      0.1106 |          |               |               |
+| NoiseImp                 |      0.1081 |          |               |               |
+| NoiseIter                |      0.1156 |          |               |               |
+| CompositeSus             |      0.1192 |          |               |               |
+| CompositeImp             |      0.1161 |          |               |               |
+| CompositeIter            |      0.1069 |          |               |               |
+|                          |             |   0.1192 | CompositeSus  | NoiseSus      |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| Y2-repeating_hits.wav    |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0000 |          |               |               |
+| HarmImp                  |      0.0000 |          |               |               |
+| HarmIter                 |      0.0000 |          |               |               |
+| NoiseSus                 |      0.0000 |          |               |               |
+| NoiseImp                 |      0.0000 |          |               |               |
+| NoiseIter                |      0.6013 |          |               |               |
+| CompositeSus             |      0.3910 |          |               |               |
+| CompositeImp             |      0.0000 |          |               |               |
+| CompositeIter            |      0.0077 |          |               |               |
+|                          |             |   0.6013 | NoiseIter     | CompositeIter |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| Y1-repeating_hits.wav    |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0000 |          |               |               |
+| HarmImp                  |      0.0000 |          |               |               |
+| HarmIter                 |      0.0000 |          |               |               |
+| NoiseSus                 |      0.0000 |          |               |               |
+| NoiseImp                 |      0.0000 |          |               |               |
+| NoiseIter                |      0.0000 |          |               |               |
+| CompositeSus             |      1.0000 |          |               |               |
+| CompositeImp             |      0.0000 |          |               |               |
+| CompositeIter            |      0.0000 |          |               |               |
+|                          |             |   1.0000 | CompositeSus  | CompositeImp  |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| Y2-noise.wav             |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0008 |          |               |               |
+| HarmImp                  |      0.0012 |          |               |               |
+| HarmIter                 |      0.0027 |          |               |               |
+| NoiseSus                 |      0.1140 |          |               |               |
+| NoiseImp                 |      0.0158 |          |               |               |
+| NoiseIter                |      0.0253 |          |               |               |
+| CompositeSus             |      0.1487 |          |               |               |
+| CompositeImp             |      0.0619 |          |               |               |
+| CompositeIter            |      0.6295 |          |               |               |
+|                          |             |   0.6295 | CompositeIter | CompositeIter |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| N1-imp_005.wav           |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0000 |          |               |               |
+| HarmImp                  |      0.9992 |          |               |               |
+| HarmIter                 |      0.0000 |          |               |               |
+| NoiseSus                 |      0.0000 |          |               |               |
+| NoiseImp                 |      0.0006 |          |               |               |
+| NoiseIter                |      0.0001 |          |               |               |
+| CompositeSus             |      0.0000 |          |               |               |
+| CompositeImp             |      0.0000 |          |               |               |
+| CompositeIter            |      0.0000 |          |               |               |
+|                          |             |   0.9992 | HarmImp       | HarmImp       |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| N1-impulse.wav           |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0046 |          |               |               |
+| HarmImp                  |      0.0085 |          |               |               |
+| HarmIter                 |      0.1258 |          |               |               |
+| NoiseSus                 |      0.0020 |          |               |               |
+| NoiseImp                 |      0.0276 |          |               |               |
+| NoiseIter                |      0.3504 |          |               |               |
+| CompositeSus             |      0.4200 |          |               |               |
+| CompositeImp             |      0.0108 |          |               |               |
+| CompositeIter            |      0.0504 |          |               |               |
+|                          |             |   0.4200 | CompositeSus  | HarmImp       |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| N1-impulse1.wav          |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0001 |          |               |               |
+| HarmImp                  |      0.0000 |          |               |               |
+| HarmIter                 |      0.0000 |          |               |               |
+| NoiseSus                 |      0.0005 |          |               |               |
+| NoiseImp                 |      0.0107 |          |               |               |
+| NoiseIter                |      0.0007 |          |               |               |
+| CompositeSus             |      0.0018 |          |               |               |
+| CompositeImp             |      0.9851 |          |               |               |
+| CompositeIter            |      0.0010 |          |               |               |
+|                          |             |   0.9851 | CompositeImp  | HarmImp       |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| Y0-nois_sustain.wav      |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0004 |          |               |               |
+| HarmImp                  |      0.0004 |          |               |               |
+| HarmIter                 |      0.0001 |          |               |               |
+| NoiseSus                 |      0.5126 |          |               |               |
+| NoiseImp                 |      0.0001 |          |               |               |
+| NoiseIter                |      0.0038 |          |               |               |
+| CompositeSus             |      0.4811 |          |               |               |
+| CompositeImp             |      0.0005 |          |               |               |
+| CompositeIter            |      0.0010 |          |               |               |
+|                          |             |   0.5126 | NoiseSus      | CompositeSus  |
+
+**** Settings
+- target_shape=(512, 256)
+- epochs 200s
+- librosa.feature.melspectrogram
+**** Results 4 matches
+
+| N0-alto_flute.wav        |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      1.0000 |          |               |               |
+| HarmImp                  |      0.0000 |          |               |               |
+| HarmIter                 |      0.0000 |          |               |               |
+| NoiseSus                 |      0.0000 |          |               |               |
+| NoiseImp                 |      0.0000 |          |               |               |
+| NoiseIter                |      0.0000 |          |               |               |
+| CompositeSus             |      0.0000 |          |               |               |
+| CompositeImp             |      0.0000 |          |               |               |
+| CompositeIter            |      0.0000 |          |               |               |
+|                          |             |   1.0000 | HarmSus       | HarmSus       |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| X2-rhythm.wav            |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0000 |          |               |               |
+| HarmImp                  |      0.0000 |          |               |               |
+| HarmIter                 |      1.0000 |          |               |               |
+| NoiseSus                 |      0.0000 |          |               |               |
+| NoiseImp                 |      0.0000 |          |               |               |
+| NoiseIter                |      0.0000 |          |               |               |
+| CompositeSus             |      0.0000 |          |               |               |
+| CompositeImp             |      0.0000 |          |               |               |
+| CompositeIter            |      0.0000 |          |               |               |
+|                          |             |   1.0000 | HarmIter      | NoiseIter     |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| X1-impulse.wav           |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0011 |          |               |               |
+| HarmImp                  |      0.0061 |          |               |               |
+| HarmIter                 |      0.0015 |          |               |               |
+| NoiseSus                 |      0.0384 |          |               |               |
+| NoiseImp                 |      0.0260 |          |               |               |
+| NoiseIter                |      0.0331 |          |               |               |
+| CompositeSus             |      0.0148 |          |               |               |
+| CompositeImp             |      0.5467 |          |               |               |
+| CompositeIter            |      0.3323 |          |               |               |
+|                          |             |   0.5467 | CompositeImp  | NoiseImp      |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| N2-repeating.wav         |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0000 |          |               |               |
+| HarmImp                  |      0.0000 |          |               |               |
+| HarmIter                 |      0.0000 |          |               |               |
+| NoiseSus                 |      0.0000 |          |               |               |
+| NoiseImp                 |      0.0000 |          |               |               |
+| NoiseIter                |      1.0000 |          |               |               |
+| CompositeSus             |      0.0000 |          |               |               |
+| CompositeImp             |      0.0000 |          |               |               |
+| CompositeIter            |      0.0000 |          |               |               |
+|                          |             |   1.0000 | NoiseIter     | HarmIter      |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| N0-Pitched_Sculpture.wav |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0058 |          |               |               |
+| HarmImp                  |      0.0000 |          |               |               |
+| HarmIter                 |      0.0000 |          |               |               |
+| NoiseSus                 |      0.9935 |          |               |               |
+| NoiseImp                 |      0.0000 |          |               |               |
+| NoiseIter                |      0.0000 |          |               |               |
+| CompositeSus             |      0.0007 |          |               |               |
+| CompositeImp             |      0.0000 |          |               |               |
+| CompositeIter            |      0.0000 |          |               |               |
+|                          |             |   0.9935 | NoiseSus      | HarmSus       |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| X0-tone.wav              |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0018 |          |               |               |
+| HarmImp                  |      0.0000 |          |               |               |
+| HarmIter                 |      0.0000 |          |               |               |
+| NoiseSus                 |      0.9982 |          |               |               |
+| NoiseImp                 |      0.0000 |          |               |               |
+| NoiseIter                |      0.0000 |          |               |               |
+| CompositeSus             |      0.0000 |          |               |               |
+| CompositeImp             |      0.0000 |          |               |               |
+| CompositeIter            |      0.0000 |          |               |               |
+|                          |             |   0.9982 | NoiseSus      | NoiseSus      |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| X0-noise.wav             |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0219 |          |               |               |
+| HarmImp                  |      0.0164 |          |               |               |
+| HarmIter                 |      0.0192 |          |               |               |
+| NoiseSus                 |      0.0297 |          |               |               |
+| NoiseImp                 |      0.0413 |          |               |               |
+| NoiseIter                |      0.0300 |          |               |               |
+| CompositeSus             |      0.4642 |          |               |               |
+| CompositeImp             |      0.0650 |          |               |               |
+| CompositeIter            |      0.3122 |          |               |               |
+|                          |             |   0.4642 | CompositeSus  | NoiseSus      |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| Y2-repeating_hits.wav    |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0000 |          |               |               |
+| HarmImp                  |      0.0000 |          |               |               |
+| HarmIter                 |      0.0000 |          |               |               |
+| NoiseSus                 |      0.0000 |          |               |               |
+| NoiseImp                 |      0.0000 |          |               |               |
+| NoiseIter                |      0.9665 |          |               |               |
+| CompositeSus             |      0.0231 |          |               |               |
+| CompositeImp             |      0.0000 |          |               |               |
+| CompositeIter            |      0.0104 |          |               |               |
+|                          |             |   0.9665 | NoiseIter     | CompositeIter |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| Y1-repeating_hits.wav    |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0000 |          |               |               |
+| HarmImp                  |      0.0000 |          |               |               |
+| HarmIter                 |      0.0000 |          |               |               |
+| NoiseSus                 |      0.0000 |          |               |               |
+| NoiseImp                 |      0.0000 |          |               |               |
+| NoiseIter                |      0.0436 |          |               |               |
+| CompositeSus             |      0.9564 |          |               |               |
+| CompositeImp             |      0.0000 |          |               |               |
+| CompositeIter            |      0.0000 |          |               |               |
+|                          |             |   0.9564 | CompositeSus  | CompositeImp  |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| Y2-noise.wav             |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0007 |          |               |               |
+| HarmImp                  |      0.0008 |          |               |               |
+| HarmIter                 |      0.0011 |          |               |               |
+| NoiseSus                 |      0.0260 |          |               |               |
+| NoiseImp                 |      0.0040 |          |               |               |
+| NoiseIter                |      0.0152 |          |               |               |
+| CompositeSus             |      0.0843 |          |               |               |
+| CompositeImp             |      0.0040 |          |               |               |
+| CompositeIter            |      0.8640 |          |               |               |
+|                          |             |   0.8640 | CompositeIter | CompositeIter |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| N1-imp_005.wav           |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0000 |          |               |               |
+| HarmImp                  |      0.9918 |          |               |               |
+| HarmIter                 |      0.0001 |          |               |               |
+| NoiseSus                 |      0.0000 |          |               |               |
+| NoiseImp                 |      0.0024 |          |               |               |
+| NoiseIter                |      0.0035 |          |               |               |
+| CompositeSus             |      0.0004 |          |               |               |
+| CompositeImp             |      0.0013 |          |               |               |
+| CompositeIter            |      0.0005 |          |               |               |
+|                          |             |   0.9918 | HarmImp       | HarmImp       |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| N1-impulse.wav           |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0036 |          |               |               |
+| HarmImp                  |      0.0088 |          |               |               |
+| HarmIter                 |      0.0942 |          |               |               |
+| NoiseSus                 |      0.0013 |          |               |               |
+| NoiseImp                 |      0.0042 |          |               |               |
+| NoiseIter                |      0.5038 |          |               |               |
+| CompositeSus             |      0.3634 |          |               |               |
+| CompositeImp             |      0.0098 |          |               |               |
+| CompositeIter            |      0.0109 |          |               |               |
+|                          |             |   0.5038 | NoiseIter     | HarmImp       |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| N1-impulse1.wav          |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0000 |          |               |               |
+| HarmImp                  |      0.0000 |          |               |               |
+| HarmIter                 |      0.0002 |          |               |               |
+| NoiseSus                 |      0.0001 |          |               |               |
+| NoiseImp                 |      0.0027 |          |               |               |
+| NoiseIter                |      0.0101 |          |               |               |
+| CompositeSus             |      0.0011 |          |               |               |
+| CompositeImp             |      0.9857 |          |               |               |
+| CompositeIter            |      0.0000 |          |               |               |
+|                          |             |   0.9857 | CompositeImp  | HarmImp       |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| Y0-nois_sustain.wav      |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0006 |          |               |               |
+| HarmImp                  |      0.0028 |          |               |               |
+| HarmIter                 |      0.0002 |          |               |               |
+| NoiseSus                 |      0.5226 |          |               |               |
+| NoiseImp                 |      0.0001 |          |               |               |
+| NoiseIter                |      0.0043 |          |               |               |
+| CompositeSus             |      0.4673 |          |               |               |
+| CompositeImp             |      0.0002 |          |               |               |
+| CompositeIter            |      0.0019 |          |               |               |
+|                          |             |   0.5226 | NoiseSus      | CompositeSus  |
+
+**** Settings
+- target_shape=(512, 512)
+- epochs 200s
+- librosa.feature.melspectrogram
+
+  
+**** Results 2 matches
+| N0-alto_flute.wav        |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0000 |          |               |               |
+| HarmImp                  |      1.0000 |          |               |               |
+| HarmIter                 |      0.0000 |          |               |               |
+| NoiseSus                 |      0.0000 |          |               |               |
+| NoiseImp                 |      0.0000 |          |               |               |
+| NoiseIter                |      0.0000 |          |               |               |
+| CompositeSus             |      0.0000 |          |               |               |
+| CompositeImp             |      0.0000 |          |               |               |
+| CompositeIter            |      0.0000 |          |               |               |
+|                          |             |   1.0000 | HarmImp       | HarmSus       |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| X2-rhythm.wav            |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0000 |          |               |               |
+| HarmImp                  |      0.0000 |          |               |               |
+| HarmIter                 |      0.0000 |          |               |               |
+| NoiseSus                 |      0.0000 |          |               |               |
+| NoiseImp                 |      0.0000 |          |               |               |
+| NoiseIter                |      0.0000 |          |               |               |
+| CompositeSus             |      1.0000 |          |               |               |
+| CompositeImp             |      0.0000 |          |               |               |
+| CompositeIter            |      0.0000 |          |               |               |
+|                          |             |   1.0000 | CompositeSus  | NoiseIter     |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| X1-impulse.wav           |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0028 |          |               |               |
+| HarmImp                  |      0.0017 |          |               |               |
+| HarmIter                 |      0.0127 |          |               |               |
+| NoiseSus                 |      0.0982 |          |               |               |
+| NoiseImp                 |      0.0619 |          |               |               |
+| NoiseIter                |      0.0531 |          |               |               |
+| CompositeSus             |      0.0517 |          |               |               |
+| CompositeImp             |      0.4818 |          |               |               |
+| CompositeIter            |      0.2361 |          |               |               |
+|                          |             |   0.4818 | CompositeImp  | NoiseImp      |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| N2-repeating.wav         |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0000 |          |               |               |
+| HarmImp                  |      0.0000 |          |               |               |
+| HarmIter                 |      0.0000 |          |               |               |
+| NoiseSus                 |      0.0000 |          |               |               |
+| NoiseImp                 |      0.0000 |          |               |               |
+| NoiseIter                |      1.0000 |          |               |               |
+| CompositeSus             |      0.0000 |          |               |               |
+| CompositeImp             |      0.0000 |          |               |               |
+| CompositeIter            |      0.0000 |          |               |               |
+|                          |             |   1.0000 | NoiseIter     | HarmIter      |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| N0-Pitched_Sculpture.wav |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0000 |          |               |               |
+| HarmImp                  |      0.0000 |          |               |               |
+| HarmIter                 |      0.7598 |          |               |               |
+| NoiseSus                 |      0.0000 |          |               |               |
+| NoiseImp                 |      0.0739 |          |               |               |
+| NoiseIter                |      0.0010 |          |               |               |
+| CompositeSus             |      0.1653 |          |               |               |
+| CompositeImp             |      0.0000 |          |               |               |
+| CompositeIter            |      0.0000 |          |               |               |
+|                          |             |   0.7598 | HarmIter      | HarmSus       |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| X0-tone.wav              |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0000 |          |               |               |
+| HarmImp                  |      0.0000 |          |               |               |
+| HarmIter                 |      1.0000 |          |               |               |
+| NoiseSus                 |      0.0000 |          |               |               |
+| NoiseImp                 |      0.0000 |          |               |               |
+| NoiseIter                |      0.0000 |          |               |               |
+| CompositeSus             |      0.0000 |          |               |               |
+| CompositeImp             |      0.0000 |          |               |               |
+| CompositeIter            |      0.0000 |          |               |               |
+|                          |             |   1.0000 | HarmIter      | NoiseSus      |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| X0-noise.wav             |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.1058 |          |               |               |
+| HarmImp                  |      0.1136 |          |               |               |
+| HarmIter                 |      0.1112 |          |               |               |
+| NoiseSus                 |      0.1100 |          |               |               |
+| NoiseImp                 |      0.1116 |          |               |               |
+| NoiseIter                |      0.1101 |          |               |               |
+| CompositeSus             |      0.1149 |          |               |               |
+| CompositeImp             |      0.1080 |          |               |               |
+| CompositeIter            |      0.1148 |          |               |               |
+|                          |             |   0.1149 | CompositeSus  | NoiseSus      |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| Y2-repeating_hits.wav    |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0000 |          |               |               |
+| HarmImp                  |      0.0000 |          |               |               |
+| HarmIter                 |      0.0000 |          |               |               |
+| NoiseSus                 |      0.0007 |          |               |               |
+| NoiseImp                 |      0.0000 |          |               |               |
+| NoiseIter                |      0.9993 |          |               |               |
+| CompositeSus             |      0.0000 |          |               |               |
+| CompositeImp             |      0.0000 |          |               |               |
+| CompositeIter            |      0.0000 |          |               |               |
+|                          |             |   0.9993 | NoiseIter     | CompositeIter |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| Y1-repeating_hits.wav    |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0000 |          |               |               |
+| HarmImp                  |      0.0052 |          |               |               |
+| HarmIter                 |      0.0000 |          |               |               |
+| NoiseSus                 |      0.0000 |          |               |               |
+| NoiseImp                 |      0.0000 |          |               |               |
+| NoiseIter                |      0.0000 |          |               |               |
+| CompositeSus             |      0.0237 |          |               |               |
+| CompositeImp             |      0.0000 |          |               |               |
+| CompositeIter            |      0.9711 |          |               |               |
+|                          |             |   0.9711 | CompositeIter | CompositeImp  |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| Y2-noise.wav             |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0016 |          |               |               |
+| HarmImp                  |      0.0002 |          |               |               |
+| HarmIter                 |      0.0039 |          |               |               |
+| NoiseSus                 |      0.0094 |          |               |               |
+| NoiseImp                 |      0.0021 |          |               |               |
+| NoiseIter                |      0.0112 |          |               |               |
+| CompositeSus             |      0.0710 |          |               |               |
+| CompositeImp             |      0.0015 |          |               |               |
+| CompositeIter            |      0.8991 |          |               |               |
+|                          |             |   0.8991 | CompositeIter | CompositeIter |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| N1-imp_005.wav           |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0001 |          |               |               |
+| HarmImp                  |      0.9989 |          |               |               |
+| HarmIter                 |      0.0000 |          |               |               |
+| NoiseSus                 |      0.0000 |          |               |               |
+| NoiseImp                 |      0.0001 |          |               |               |
+| NoiseIter                |      0.0000 |          |               |               |
+| CompositeSus             |      0.0000 |          |               |               |
+| CompositeImp             |      0.0009 |          |               |               |
+| CompositeIter            |      0.0000 |          |               |               |
+|                          |             |   0.9989 | HarmImp       | HarmImp       |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| N1-impulse.wav           |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0023 |          |               |               |
+| HarmImp                  |      0.0060 |          |               |               |
+| HarmIter                 |      0.1779 |          |               |               |
+| NoiseSus                 |      0.0015 |          |               |               |
+| NoiseImp                 |      0.0202 |          |               |               |
+| NoiseIter                |      0.3352 |          |               |               |
+| CompositeSus             |      0.2521 |          |               |               |
+| CompositeImp             |      0.0018 |          |               |               |
+| CompositeIter            |      0.2030 |          |               |               |
+|                          |             |   0.3352 | NoiseIter     | HarmImp       |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| N1-impulse1.wav          |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0001 |          |               |               |
+| HarmImp                  |      0.0002 |          |               |               |
+| HarmIter                 |      0.0427 |          |               |               |
+| NoiseSus                 |      0.0004 |          |               |               |
+| NoiseImp                 |      0.0005 |          |               |               |
+| NoiseIter                |      0.0437 |          |               |               |
+| CompositeSus             |      0.7493 |          |               |               |
+| CompositeImp             |      0.0040 |          |               |               |
+| CompositeIter            |      0.1592 |          |               |               |
+|                          |             |   0.7493 | CompositeSus  | HarmImp       |
+|                          |             |          |               |               |
+|                          |             |          |               |               |
+| Y0-nois_sustain.wav      |             |          |               |               |
+| Class                    | Probability | Accuracy | Classified    | Analyzed      |
+| HarmSus                  |      0.0014 |          |               |               |
+| HarmImp                  |      0.0003 |          |               |               |
+| HarmIter                 |      0.0001 |          |               |               |
+| NoiseSus                 |      0.5325 |          |               |               |
+| NoiseImp                 |      0.0003 |          |               |               |
+| NoiseIter                |      0.0042 |          |               |               |
+| CompositeSus             |      0.4595 |          |               |               |
+| CompositeImp             |      0.0006 |          |               |               |
+| CompositeIter            |      0.0013 |          |               |               |
+|                          |             |   0.5325 | NoiseSus      | CompositeSus  |
+
+**** Settings
+128/128
+200 epochs
+
+**** Results
+
+N0-alto_flute.wav, , ,
+Class, Probability, Accuracy, Classified, Analyzed
+HarmSus, 0.0000
+HarmImp, 0.0000
+HarmIter, 0.0000
+NoiseSus, 0.0000
+NoiseImp, 0.0000
+NoiseIter, 0.0000
+CompositeSus, 1.0000
+CompositeImp, 0.0000
+CompositeIter, 0.0000
+, , 1.0000, CompositeSus, HarmSus
+1/1 ━━━━━━━━━━━━━━━━━━━━ 0s 13ms/step
+X2-rhythm.wav, , ,
+Class, Probability, Accuracy, Classified, Analyzed
+HarmSus, 0.0000
+HarmImp, 0.0000
+HarmIter, 1.0000
+NoiseSus, 0.0000
+NoiseImp, 0.0000
+NoiseIter, 0.0000
+CompositeSus, 0.0000
+CompositeImp, 0.0000
+CompositeIter, 0.0000
+, , 1.0000, HarmIter, NoiseIter
+1/1 ━━━━━━━━━━━━━━━━━━━━ 0s 13ms/step
+X1-impulse.wav, , ,
+Class, Probability, Accuracy, Classified, Analyzed
+HarmSus, 0.0161
+HarmImp, 0.0002
+HarmIter, 0.0000
+NoiseSus, 0.0109
+NoiseImp, 0.9453
+NoiseIter, 0.0001
+CompositeSus, 0.0060
+CompositeImp, 0.0116
+CompositeIter, 0.0098
+, , 0.9453, NoiseImp, NoiseImp
+1/1 ━━━━━━━━━━━━━━━━━━━━ 0s 13ms/step
+N2-repeating.wav, , ,
+Class, Probability, Accuracy, Classified, Analyzed
+HarmSus, 0.0000
+HarmImp, 0.0266
+HarmIter, 0.0000
+NoiseSus, 0.0000
+NoiseImp, 0.0000
+NoiseIter, 0.0000
+CompositeSus, 0.0000
+CompositeImp, 0.0000
+CompositeIter, 0.9734
+, , 0.9734, CompositeIter, HarmIter
+1/1 ━━━━━━━━━━━━━━━━━━━━ 0s 13ms/step
+N0-Pitched_Sculpture.wav, , ,
+Class, Probability, Accuracy, Classified, Analyzed
+HarmSus, 0.0000
+HarmImp, 0.0000
+HarmIter, 0.0000
+NoiseSus, 0.0000
+NoiseImp, 0.0004
+NoiseIter, 0.0000
+CompositeSus, 0.9925
+CompositeImp, 0.0071
+CompositeIter, 0.0000
+, , 0.9925, CompositeSus, HarmSus
+1/1 ━━━━━━━━━━━━━━━━━━━━ 0s 14ms/step
+X0-tone.wav, , ,
+Class, Probability, Accuracy, Classified, Analyzed
+HarmSus, 0.0000
+HarmImp, 0.0000
+HarmIter, 0.0000
+NoiseSus, 0.0000
+NoiseImp, 0.0000
+NoiseIter, 0.0000
+CompositeSus, 1.0000
+CompositeImp, 0.0000
+CompositeIter, 0.0000
+, , 1.0000, CompositeSus, NoiseSus
+1/1 ━━━━━━━━━━━━━━━━━━━━ 0s 12ms/step
+X0-noise.wav, , ,
+Class, Probability, Accuracy, Classified, Analyzed
+HarmSus, 0.1958
+HarmImp, 0.0189
+HarmIter, 0.1428
+NoiseSus, 0.0716
+NoiseImp, 0.0695
+NoiseIter, 0.0191
+CompositeSus, 0.2439
+CompositeImp, 0.1473
+CompositeIter, 0.0912
+, , 0.2439, CompositeSus, NoiseSus
+1/1 ━━━━━━━━━━━━━━━━━━━━ 0s 14ms/step
+Y2-repeating_hits.wav, , ,
+Class, Probability, Accuracy, Classified, Analyzed
+HarmSus, 0.0000
+HarmImp, 0.0000
+HarmIter, 0.0000
+NoiseSus, 1.0000
+NoiseImp, 0.0000
+NoiseIter, 0.0000
+CompositeSus, 0.0000
+CompositeImp, 0.0000
+CompositeIter, 0.0000
+, , 1.0000, NoiseSus, CompositeIter
+1/1 ━━━━━━━━━━━━━━━━━━━━ 0s 13ms/step
+Y1-repeating_hits.wav, , ,
+Class, Probability, Accuracy, Classified, Analyzed
+HarmSus, 0.0000
+HarmImp, 0.0000
+HarmIter, 0.0000
+NoiseSus, 0.0000
+NoiseImp, 0.0000
+NoiseIter, 0.0000
+CompositeSus, 1.0000
+CompositeImp, 0.0000
+CompositeIter, 0.0000
+, , 1.0000, CompositeSus, CompositeImp
+1/1 ━━━━━━━━━━━━━━━━━━━━ 0s 15ms/step
+Y2-noise.wav, , ,
+Class, Probability, Accuracy, Classified, Analyzed
+HarmSus, 0.1569
+HarmImp, 0.0008
+HarmIter, 0.0090
+NoiseSus, 0.4229
+NoiseImp, 0.0064
+NoiseIter, 0.0138
+CompositeSus, 0.2100
+CompositeImp, 0.0325
+CompositeIter, 0.1477
+, , 0.4229, NoiseSus, CompositeIter
+1/1 ━━━━━━━━━━━━━━━━━━━━ 0s 13ms/step
+N1-imp_005.wav, , ,
+Class, Probability, Accuracy, Classified, Analyzed
+HarmSus, 0.0000
+HarmImp, 0.9988
+HarmIter, 0.0000
+NoiseSus, 0.0000
+NoiseImp, 0.0012
+NoiseIter, 0.0000
+CompositeSus, 0.0000
+CompositeImp, 0.0001
+CompositeIter, 0.0000
+, , 0.9988, HarmImp, HarmImp
+1/1 ━━━━━━━━━━━━━━━━━━━━ 0s 14ms/step
+N1-impulse.wav, , ,
+Class, Probability, Accuracy, Classified, Analyzed
+HarmSus, 0.1313
+HarmImp, 0.0004
+HarmIter, 0.0059
+NoiseSus, 0.0120
+NoiseImp, 0.0240
+NoiseIter, 0.0231
+CompositeSus, 0.7036
+CompositeImp, 0.0528
+CompositeIter, 0.0470
+, , 0.7036, CompositeSus, HarmImp
+1/1 ━━━━━━━━━━━━━━━━━━━━ 0s 13ms/step
+N1-impulse1.wav, , ,
+Class, Probability, Accuracy, Classified, Analyzed
+HarmSus, 0.0000
+HarmImp, 0.0000
+HarmIter, 0.0000
+NoiseSus, 0.0000
+NoiseImp, 0.9967
+NoiseIter, 0.0000
+CompositeSus, 0.0001
+CompositeImp, 0.0032
+CompositeIter, 0.0000
+, , 0.9967, NoiseImp, HarmImp
+1/1 ━━━━━━━━━━━━━━━━━━━━ 0s 14ms/step
+Y0-nois_sustain.wav, , ,
+Class, Probability, Accuracy, Classified, Analyzed
+HarmSus, 0.0049
+HarmImp, 0.0000
+HarmIter, 0.0046
+NoiseSus, 0.3860
+NoiseImp, 0.0000
+NoiseIter, 0.0000
+CompositeSus, 0.6042
+CompositeImp, 0.0003
+CompositeIter, 0.0000
+, , 0.6042, CompositeSus, CompositeSus
+
+**** Settings
+
+**** Results

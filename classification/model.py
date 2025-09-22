@@ -12,17 +12,15 @@ from tensorflow.image import resize
 from tensorflow.keras.models import load_model
 
 # Define your folder structure
-cwd = os.getcwd()
+dir = os.getcwd()
 
-dir = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/'
-# Change this to cwd + '/' + when run as script.
 data_dir = os.path.join(dir, 'training_data')
 # classes = ['Impulse', 'Iteration', 'Vsustain', 'Fsustain']
 classes = ['HarmSus', 'HarmImp', 'HarmIter', 'NoiseSus', 'NoiseImp', 'NoiseIter', 'CompositeSus', 'CompositeImp', 'CompositeIter']
 print(data_dir)
 
 # Load and preprocess audio data
-def load_and_preprocess_data(data_dir, classes, target_shape=(256, 128)):
+def load_and_preprocess_data(data_dir, classes, target_shape=(256, 256)):
     data = []
     labels = []
     
@@ -59,7 +57,8 @@ model = Model(input_layer, output_layer)
 
 model.compile(optimizer=Adam(learning_rate=0.001), loss='categorical_crossentropy', metrics=['accuracy'])
 
-model.fit(X_train, y_train, epochs=250, batch_size=64, validation_data=(X_test, y_test))
+model.fit(X_train, y_train, epochs=400, batch_size=64, validation_data=(X_test, y_test))
 
-dir = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/'
-model.save(dir + 'audio_classification.keras')
+#  file_name = sys.argv[1]
+#  dir = os.getcwd()
+model.save(os.path.join(dir, 'audio_classification.keras'))
