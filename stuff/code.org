@@ -452,11 +452,13 @@ To find additional classifiers its easy to run the script with different key wor
 
 #+end_src
 
-* Mod
-el
+* Model
+
 Extracted from here: https://medium.com/@oluyaled/audio-classification-using-deep-learning-and-tensorflow-a-step-by-step-guide-5327467ee9ab
 
-#+begin_src python :results output value :tangle /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/model.py
+Check also here: https://kaavyamaha12.medium.com/extracting-audio-features-using-librosa-3be4ff1fe57f
+
+#+begin_src python :results output value :session python :tangle /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/model.py
   import os
   import librosa
   import numpy as np
@@ -497,8 +499,27 @@ Extracted from here: https://medium.com/@oluyaled/audio-classification-using-dee
                   
       return np.array(data), np.array(labels)
 
+  # Load and preprocess audio data
+  def load_and_preprocess_data_mfcc(data_dir, classes, target_shape=(64, 64)):
+      data = []
+      labels = []
+    
+      for i, class_name in enumerate(classes):
+          class_dir = os.path.join(data_dir, class_name)
+          for filename in os.listdir(class_dir):
+              if filename.endswith('.wav'):
+                  file_path = os.path.join(class_dir, filename)
+                  audio_data, sample_rate = librosa.load(file_path, sr=None)
+                  # Perform preprocessing (e.g., convert to Mel spectrogram and resize)
+                  mfcc = librosa.feature.mfcc(y=audio_data, sr=sample_rate, n_mfcc=32)
+                  mfcc = resize(np.expand_dims(mfcc, axis=-1), target_shape)
+                  data.append(mfcc)
+                  labels.append(i)
+                  
+                  return np.array(data), np.array(labels)
+
   # Split data into training and testing sets
-  data, labels = load_and_preprocess_data(data_dir, classes)
+  data, labels = load_and_preprocess_data_mfcc(data_dir, classes)
   labels = to_categorical(labels, num_classes=len(classes))  # Convert labels to one-hot encoding
   X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.2, random_state=42)
 
@@ -566,13 +587,15 @@ if('N0' in os.path.basename(file)):
 : Found audio file /Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/training_data/noise.wav
 
 * Compiling the model
-#+begin_src python :tangle /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/model.py
+#+begin_src python :session python :tangle /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/model.py
   model.compile(optimizer=Adam(learning_rate=0.001), loss='categorical_crossentropy', metrics=['accuracy'])
 #+end_src
 
+#+RESULTS:
+
 * Training the model
 #+begin_src python :tangle /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/model.py
-  model.fit(X_train, y_train, epochs=300, batch_size=64, validation_data=(X_test, y_test))
+  model.fit(X_train, y_train, epochs=10, batch_size=32, validation_data=(X_test, y_test))
 #+end_src
 
 * Save the model
@@ -595,31 +618,49 @@ model.save(os.path.join(dir, 'audio_classification.keras'))
 This proves to be working with limited tests. Next thing to do is work out the optimal settings for analysis below. Especially the spectrogram settings and we should also test with other spectrograms than mel.
 
 #+begin_src python :results value output :tangle /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/eval_model.py
-test_accuracy=model.evaluate(X_test,y_test,verbose=0)
-print(test_accuracy[1])
+  test_accuracy=model.evaluate(X_test,y_test,verbose=0)
+  print(test_accuracy[1])
 
-test_accuracy=model.evaluate(X_test,y_test,verbose=0)
-print(test_accuracy[1])
+  test_accuracy=model.evaluate(X_test,y_test,verbose=0)
+  print(test_accuracy[1])
 
-import glob
+  import glob
 
-# Load the saved model
-dir = os.getcwd()
-print(dir)
-print(os.path.join(dir, 'audio_classification.keras'))
-#model = load_model(os.path.join(dir, 'audio_classification.keras'))
+  # Load the saved model
+  dir = os.getcwd()
+  print(dir)
+  print(os.path.join(dir, 'audio_classification.keras'))
+  #model = load_model(os.path.join(dir, 'audio_classification.keras'))
 
-# Define the target shape for input spectrograms
-target_shape = (256, 128)
+  # Define the target shape for input spectrograms
+  target_shape = (128, 128)
 
-# Define your class labels
-classes = ['HarmSus', 'HarmImp', 'HarmIter', 'NoiseSus', 'NoiseImp', 'NoiseIter', 'CompositeSus', 'CompositeImp', 'CompositeIter']
-tartyp = ['N0', 'N1', 'N2', 'X0', 'X1', 'X2', 'Y0', 'Y1', 'Y2']
-# Function to preprocess and classify an audio file
-def test_audio(file_path, model):
+  # Define your class labels
+  classes = ['HarmSus', 'HarmImp', 'HarmIter', 'NoiseSus', 'NoiseImp', 'NoiseIter', 'CompositeSus', 'CompositeImp', 'CompositeIter']
+  tartyp = ['N0', 'N1', 'N2', 'X0', 'X1', 'X2', 'Y0', 'Y1', 'Y2']
+  # Function to preprocess and classify an audio file
+  def test_audio(file_path, model):
+      # Load and preprocess the audio file
+      audio_data, sample_rate = librosa.load(file_path, sr=None)
+      audio_data = librosa.feature.melspectrogram(y=audio_data, sr=sample_rate)
+      audio_data = resize(np.expand_dims(audio_data, axis=-1), target_shape)
+      audio_data = tf.reshape(audio_data, (1,) + target_shape + (1,))
+          
+      # Make predictions
+      predictions = model.predict(audio_data)
+      
+      # Get the class probabilities
+      class_probabilities = predictions[0]
+      
+      # Get the predicted class index
+      predicted_class_index = np.argmax(class_probabilities)
+      
+      return class_probabilities, predicted_class_index
+
+  def test_audio_mfcc(file_path, model):
     # Load and preprocess the audio file
     audio_data, sample_rate = librosa.load(file_path, sr=None)
-    audio_data = librosa.feature.melspectrogram(y=audio_data, sr=sample_rate)
+    audio_data = librosa.feature.mfcc(y=audio_data, sr=sample_rate, n_mfcc=40)
     audio_data = resize(np.expand_dims(audio_data, axis=-1), target_shape)
     audio_data = tf.reshape(audio_data, (1,) + target_shape + (1,))
         
@@ -634,28 +675,28 @@ def test_audio(file_path, model):
     
     return class_probabilities, predicted_class_index
 
-# Test an audio file
-test_audio_dir = os.path.join(dir, 'training_data/testing/')
+  # Test an audio file
+  test_audio_dir = os.path.join(dir, 'training_data/testing/')
 
-extension = "*.wav"
-for test_audio_file in glob.glob(os.path.join(test_audio_dir, extension)):
-    class_probabilities, predicted_class_index = test_audio(test_audio_file, model)
-    print(f'{os.path.basename(test_audio_file)}, , ,')
-    print(f'Class, Probability, Accuracy, Classified, Analyzed')
-    # Display results for all classes
-    for i, class_label in enumerate(classes):
-        probability = class_probabilities[i]
-        print(f'{class_label}, {probability:.4f}')
+  extension = "*.wav"
+  for test_audio_file in glob.glob(os.path.join(test_audio_dir, extension)):
+      class_probabilities, predicted_class_index = test_audio_mfcc(test_audio_file, model)
+      print(f'{os.path.basename(test_audio_file)}, , ,')
+      print(f'Class, Probability, Accuracy, Classified, Analyzed')
+      # Display results for all classes
+      for i, class_label in enumerate(classes):
+          probability = class_probabilities[i]
+          print(f'{class_label}, {probability:.4f}')
 
-    for i, c in enumerate(tartyp):
-        if c in test_audio_file:
-            match = classes[i]
-        
-    # Calculate and display the predicted class and accuracy
-    predicted_class = classes[predicted_class_index]
-#    if('{os.path.basename(test_audio_file)}' )
-    accuracy = class_probabilities[predicted_class_index]
-    print(f', , {accuracy:.4f}, {predicted_class}, {match}')
+      for i, c in enumerate(tartyp):
+          if c in test_audio_file:
+              match = classes[i]
+          
+      # Calculate and display the predicted class and accuracy
+      predicted_class = classes[predicted_class_index]
+  #    if('{os.path.basename(test_audio_file)}' )
+      accuracy = class_probabilities[predicted_class_index]
+      print(f', , {accuracy:.4f}, {predicted_class}, {match}')
 #+end_src
 
 * Testing librosa features
@@ -666,10 +707,10 @@ for test_audio_file in glob.glob(os.path.join(test_audio_dir, extension)):
   import numpy as np
   import matplotlib.pyplot as plt
 
-  dir = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/training_data/'
+  dir = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/training_data/testing/'
   classes = ['Impulse', 'Iteration', 'Vsustain', 'Fsustain']
-  data_dir = os.path.join(dir, classes[1])
-  afile = os.path.join(data_dir, '2.wav')
+  file_name = 'X1-impulse.wav'
+  afile = os.path.join(dir, file_name)
 
   print(afile)
   y, sr = librosa.load(afile, sr=None)
@@ -679,28 +720,51 @@ for test_audio_file in glob.glob(os.path.join(test_audio_dir, extension)):
 
 ** melspectrogram
 #+begin_src python :noweb yes :tangle melspec.py 
-  <<plotme>>
-  
-  S = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=128, fmax=8000)
+   <<plotme>>
+   target_shape = (256, 256)
+   S = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=128, fmax=8000)
+   # S = resize(np.expand_dims(S, axis=-1), target_shape)
+   fig, ax = plt.subplots()
+   S_dB = librosa.power_to_db(S, ref=np.max)
+   img = librosa.display.specshow(S_dB, x_axis='time', y_axis='mel', sr=sr, fmax=8000, ax=ax)
+   fig.colorbar(img, ax=ax, format='%+2.0f dB')
+   ax.set(title='Mel-frequency spectrogram')
 
-  fig, ax = plt.subplots()
-  S_dB = librosa.power_to_db(S, ref=np.max)
-  img = librosa.display.specshow(S_dB, x_axis='time', y_axis='mel', sr=sr, fmax=8000, ax=ax)
-  fig.colorbar(img, ax=ax, format='%+2.0f dB')
-  ax.set(title='Mel-frequency spectrogram')
-
-  plt.show()
+   plt.show()
 #+end_src
 
 ** mfcc
 #+begin_src python :noweb yes :tangle mfcc.py
   <<plotme>>
-  mfccs = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=40)
+
+  mfccs = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=128)
   S = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=128, fmax=8000)
   fig, ax = plt.subplots(nrows=2, sharex=True)
   img = librosa.display.specshow(librosa.power_to_db(S, ref=np.max),
                                  x_axis='time', y_axis='mel', fmax=8000,
                                  ax=ax[0])
+  fig.colorbar(img, ax=[ax[0]])
+  ax[0].set(title='Mel spectrogram')
+  ax[0].label_outer()
+  img = librosa.display.specshow(mfccs, x_axis='time', ax=ax[1])
+  fig.colorbar(img, ax=[ax[1]])
+  ax[1].set(title='MFCC')
+  plt.show()
+#+end_src
+
+#+RESULTS:
+
+** mfcc with resize
+#+begin_src python :noweb yes :tangle mfcc_resize.py
+  mfccs = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=20)
+  desired_length = 100
+  mfccs_resized = librosa.util.fix_length(mfccs, size=desired_length, axis=1)
+
+  S = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=128, fmax=8000)
+  fig, ax = plt.subplots(nrows=2, sharex=True)
+  img = librosa.display.specshow(librosa.power_to_db(S, ref=np.max),
+                                  x_axis='time', y_axis='mel', fmax=8000,
+                                  ax=ax[0])
   fig.colorbar(img, ax=[ax[0]])
   ax[0].set(title='Mel spectrogram')
   ax[0].label_outer()
@@ -748,6 +812,39 @@ for test_audio_file in glob.glob(os.path.join(test_audio_dir, extension)):
 
   plt.show()
 #+end_src
+
+** beat detections
+#+begin_src python :noweb yes :tangle poly_features.py
+  <<plotme>>
+  S = np.abs(librosa.stft(y))
+  p0 = librosa.feature.poly_features(S=S, order=0)
+  p1 = librosa.feature.poly_features(S=S, order=1)
+  p2 = librosa.feature.poly_features(S=S, order=2)
+
+  print(p2)
+  
+  fig, ax = plt.subplots(nrows=4, sharex=True, figsize=(8, 8))
+  times = librosa.times_like(p0)
+  ax[0].plot(times, p0[0], label='order=0', alpha=0.8)
+  ax[0].plot(times, p1[1], label='order=1', alpha=0.8)
+  ax[0].plot(times, p2[2], label='order=2', alpha=0.8)
+  ax[0].legend()
+  ax[0].label_outer()
+  ax[0].set(ylabel='Constant term ')
+  ax[1].plot(times, p1[0], label='order=1', alpha=0.8)
+  ax[1].plot(times, p2[1], label='order=2', alpha=0.8)
+  ax[1].set(ylabel='Linear term')
+  ax[1].label_outer()
+  ax[1].legend()
+  ax[2].plot(times, p2[0], label='order=2', alpha=0.8)
+  ax[2].set(ylabel='Quadratic term')
+  ax[2].legend()
+  librosa.display.specshow(librosa.amplitude_to_db(S, ref=np.max), y_axis='log', x_axis='time', ax=ax[3])
+                           
+  plt.show()
+#+end_src
+
+#+RESULTS:
 
 * Test result
 A first quick run just testing two files, one in each category, was successful:

@@ -3,10 +3,10 @@ import librosa
 import numpy as np
 import matplotlib.pyplot as plt
 
-dir = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/training_data/'
+dir = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/training_data/testing/'
 classes = ['Impulse', 'Iteration', 'Vsustain', 'Fsustain']
-data_dir = os.path.join(dir, classes[1])
-afile = os.path.join(data_dir, '2.wav')
+file_name = 'X1-impulse.wav'
+afile = os.path.join(dir, file_name)
 
 print(afile)
 y, sr = librosa.load(afile, sr=None)
