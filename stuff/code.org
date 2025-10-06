@@ -585,6 +585,29 @@ if('N0' in os.path.basename(file)):
 : Found audio file /Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/training_data/fsustain-1.wav
 : Found audio file /Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/training_data/iter_009.wav
 : Found audio file /Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/training_data/noise.wav
+** Resize
+#+begin_src python :session :results value
+import numpy as np
+import tensorflow as tf
+
+# Original tensor S
+S = np.array([[1, 2], [3, 4]])  # Shape: (2, 2)
+
+# Expanding dimensions
+S_expanded = np.expand_dims(S, axis=0)  # Shape: (2, 2, 1)
+
+# Define target_shape (e.g., resizing to 4x4 with a single channel)
+target_shape = (4, 4, 1)
+
+# Resize the expanded tensor to the target shape
+S_resized = tf.image.resize(S_expanded, target_shape[:2])  # Output: Tensor with shape (4, 4, 1)
+print(S_expanded)
+# `target_shape[:2]` provides the new height and width for the resize operation
+#+end_src
+
+#+RESULTS:
+: None
+
 
 * Compiling the model
 #+begin_src python :session python :tangle /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/model.py
@@ -866,3 +889,41 @@ Class: Iteration, Probability: 0.8888
 The audio is classified as: Iteration
 Accuracy: 0.8888
 >>> 
+
+* New expanded model
+Extracted from [[https://medium.com/@notabelardoriojas/environmental-sound-classification-investigating-different-spectrograms-and-audio-augmentation-95f6989d0ae5][here]]
+
+In this model we are using mel, mfcc, tempograms and chromagrams
+
+#+begin_src python :session :results value
+import pandas as pd
+import librosa
+import librosa.display
+import matplotlib.pyplot as plt
+from PIL import Image
+import numpy as np
+from audiomentations import Compose, AddGaussianNoise, TimeStretch, Gain, PitchShift, RoomSimulator
+from tqdm import tqdm
+import tensorflow as tf
+import IPython.display as ipd
+
+metadata = pd.read_csv('ESC-50-master/meta/esc50.csv')
+#+end_src
+
+#+begin_src python :session :results value
+    import os
+    directory = '/Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/dataset/SCHAEFFER/Claudio'
+    file_locations = []
+    series_list = []
+    for subdir, dirs, files in os.walk(directory):
+        for file in files:
+            if file[-4:] == ".wav":
+                print(os.path.join(subdir, file))
+                file_locations.append(os.path.join(subdir, file))
+
+    for i in file_locations:
+        index = i[:-4].split("/")[-1]
+  #      series_list.append(compute_features(track_index=index, audio_path=i))
+        print(index)
+        print(i)
+#+end_src
