@@ -910,41 +910,23 @@ In this model we are using mel, mfcc, tempograms and chromagrams
   metadata = pd.read_csv('ESC-50-master/meta/esc50.csv')
 #+end_src
 
+
 #+begin_src python :session :results value
-  import os
-  import multiprocessing
-  import warnings
-  import numpy as np
-  from scipy import stats
-  import pandas as pd
-  import librosa
-  from tqdm import tqdm
-  import utils
+ import os
+import pandas as pd
+from multiprocessing import Pool
+import warnings
+import numpy as np
+from scipy import stats
+import librosa
+from tqdm import tqdm
+import utils
 
-    directory = '/Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/dataset/SCHAEFFER/Claudio'
-    file_locations = []
-
-    for subdir, dirs, files in os.walk(directory):
-        for file in files:
-            if file[-4:] == ".mp3":
-                file_locations.append(os.path.join(subdir, file))
-
-    for i in file_locations:
-        index = i[:-4].split("/")[-1]
-        series_list.append(compute_features(track_index=index, audio_path=i))
-        print(len(series_list))
-
-    muse_features = pd.concat(series_list, axis=1).T
-    muse_features['track_index'] = pd.to_numeric(muse_features['track_index'])
-    muse_features = muse_features.set_index("track_index")
-    muse_features = muse_features.sort_index()
-    muse_features.to_csv("test_features.csv")
-
-    def columns():
+  def columns():
       feature_sizes = dict(chroma_stft=12, chroma_cqt=12, chroma_cens=12,
-                             tonnetz=6, mfcc=12, rmse=1, zcr=1,
-                             spectral_centroid=1, spectral_bandwidth=1,
-                             spectral_contrast=7, spectral_rolloff=1)
+                           tonnetz=6, mfcc=20, rmse=1, zcr=1,
+                           spectral_centroid=1, spectral_bandwidth=1,
+                           spectral_contrast=7, spectral_rolloff=1)
       moments = ('mean', 'std', 'skew', 'kurtosis', 'median', 'min', 'max')
 
       columns = []
@@ -956,18 +938,16 @@ In this model we are using mel, mfcc, tempograms and chromagrams
       names = ('feature', 'statistics', 'number')
       columns = pd.MultiIndex.from_tuples(columns, names=names)
 
+      # More efficient to slice if indexes are sorted.
       return columns.sort_values()
 
-    def compute_features(audio_path, year=None, rank=None, track_index=None):
 
-      features = pd.Series(index=columns(), dtype=np.float32)
+  def compute_features(tid):
+
+      features = pd.Series(index=columns(), dtype='float64', name=tid)
+
+      # Catch warnings as exceptions (audioread leaks file descriptors).
       warnings.filterwarnings('error', module='librosa')
-      
-      if year and rank:
-          features["year"] = year
-          features["rank"] = rank
-      elif track_index:
-          features["track_index"] = track_index
 
       def feature_stats(name, values):
           features[name, 'mean'] = np.mean(values, axis=1)
@@ -979,8 +959,10 @@ In this model we are using mel, mfcc, tempograms and chromagrams
           features[name, 'max'] = np.max(values, axis=1)
 
       try:
-          filepath = audio_path
-          x, sr = librosa.load(filepath, sr=None, mono=True)  # kaiser_fast
+          filepath = os.path.join('/Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/dataset/SCHAEFFER/Claudio', tid)
+          
+          print(filepath)
+          x, sr = librosa.load(filepath, sr=None)  # kaiser_fast
 
           f = librosa.feature.zero_crossing_rate(x, frame_length=2048, hop_length=512)
           feature_stats('zcr', f)
@@ -1006,7 +988,7 @@ In this model we are using mel, mfcc, tempograms and chromagrams
           f = librosa.feature.chroma_stft(S=stft**2, n_chroma=12)
           feature_stats('chroma_stft', f)
 
-          f = librosa.feature.rms(S=stft)
+          f = librosa.feature.rmse(S=stft)
           feature_stats('rmse', f)
 
           f = librosa.feature.spectral_centroid(S=stft)
@@ -1024,9 +1006,33 @@ In this model we are using mel, mfcc, tempograms and chromagrams
           feature_stats('mfcc', f)
 
       except Exception as e:
-          print('{}: {}'.format(audio_path, repr(e)))
+          print('{}: {}'.format(tid, repr(e)))
 
       return features
-#+end_src
 
+  tracks = pd.read_csv('/Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/dataset/SCHAEFFER/metadata.csv')
+  features = pd.DataFrame(index=tracks.index, columns=columns(), dtype=np.float32)
+
+  # More than usable CPUs to be CPU bound, not I/O bound. Beware memory.
+  #nb_workers = int(1.5 * len(os.sched_getaffinity(0)))
+
+  # Longest is ~11,000 seconds. Limit processes to avoid memory errors.
+  # table = ((5000, 1), (3000, 3), (2000, 5), (1000, 10), (0, nb_workers))
+  tids = tracks.file_name
+
+  print(tids)
+  pool = multiprocessing.Pool(4)
+  it = pool.imap_unordered(compute_features, tids)
+
+  for i, row in enumerate(tqdm(it, total=len(tids))):
+      features.loc[row.name] = row
+      
+      if i % 1000 == 0:
+          save(features, 10)
+
+  save(features, 10)
+  test(features, 10)
+
+compute_features('Berta_Trupia-003.wav')
+#+end_src
 #+RESULTS:
