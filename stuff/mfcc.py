@@ -10,11 +10,9 @@ afile = os.path.join(dir, file_name)
 
 print(afile)
 y, sr = librosa.load(afile, sr=None)
-target_shape = (128, 256)
 
-mfccs = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=64)
-S = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=20, fmax=8000)
-S = np.resize(S, target_shape)
+mfccs = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=128)
+S = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=128, fmax=8000)
 fig, ax = plt.subplots(nrows=2, sharex=True)
 img = librosa.display.specshow(librosa.power_to_db(S, ref=np.max),
                                x_axis='time', y_axis='mel', fmax=8000,

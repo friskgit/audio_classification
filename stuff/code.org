@@ -608,7 +608,6 @@ print(S_expanded)
 #+RESULTS:
 : None
 
-
 * Compiling the model
 #+begin_src python :session python :tangle /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/model.py
   model.compile(optimizer=Adam(learning_rate=0.001), loss='categorical_crossentropy', metrics=['accuracy'])
@@ -891,28 +890,36 @@ Accuracy: 0.8888
 >>> 
 
 * New expanded model
+** Dataset
+Create a new csv with for the audio data for training the model.
+#+begin_src shell :results output :dir /Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/training_data
+  #!/bin/bash
+  csv
+  for dir in ./*;
+  do
+      echo "$dir"
+      for file in ./$dir/*;
+      do
+  	echo $file
+      done
+  done
+  echo "Done!\n"
+#+end_src
+
+#+begin_src shell :results output :dir /Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/dataset/SCHAEFFER
+  while IFS=, read -r col1 col2
+  do
+      echo "I got:$col1|$col2"
+  done < metadata.csv
+#+end_src
+
+** Feature extraction
 Extracted from [[https://medium.com/@notabelardoriojas/environmental-sound-classification-investigating-different-spectrograms-and-audio-augmentation-95f6989d0ae5][here]]
 
 In this model we are using mel, mfcc, tempograms and chromagrams
 
-#+begin_src python :session :results value
-  import pandas as pd
-  import librosa
-  import librosa.display
-  import matplotlib.pyplot as plt
-  from PIL import Image
-  import numpy as np
-  from audiomentations import Compose, AddGaussianNoise, TimeStretch, Gain, PitchShift, RoomSimulator
-  from tqdm import tqdm
-  import tensorflow as tf
-  import IPython.display as ipd
-
-  metadata = pd.read_csv('ESC-50-master/meta/esc50.csv')
-#+end_src
-
-
-#+begin_src python :session :results value
- import os
+#+begin_src python :session :results value :tangle extract_features.py
+import os
 import pandas as pd
 from multiprocessing import Pool
 import warnings
