@@ -741,7 +741,7 @@ This proves to be working with limited tests. Next thing to do is work out the o
 #+RESULTS: plotme
 
 ** melspectrogram
-#+begin_src python :noweb yes :tangle melspec.py 
+#+begin_src python :noweb yes :tangle ./../features/melspec.py 
    <<plotme>>
    target_shape = (256, 256)
    S = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=128, fmax=8000)
@@ -756,7 +756,7 @@ This proves to be working with limited tests. Next thing to do is work out the o
 #+end_src
 
 ** mfcc
-#+begin_src python :noweb yes :tangle mfcc.py
+#+begin_src python :noweb yes :tangle ./../features/mfcc.py
   <<plotme>>
 
   mfccs = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=128)
@@ -797,7 +797,7 @@ This proves to be working with limited tests. Next thing to do is work out the o
 #+end_src
 
 ** beat detections
-#+begin_src python :noweb yes :tangle beat.py
+#+begin_src python :noweb yes :tangle ./../features/beat.py
   <<plotme>>
   import scipy.stats
   onset_env = librosa.onset.onset_strength(y=y, sr=sr)
@@ -836,7 +836,7 @@ This proves to be working with limited tests. Next thing to do is work out the o
 #+end_src
 
 ** beat detections
-#+begin_src python :noweb yes :tangle poly_features.py
+#+begin_src python :noweb yes :tangle ./../features/poly_features.py
   <<plotme>>
   S = np.abs(librosa.stft(y))
   p0 = librosa.feature.poly_features(S=S, order=0)
@@ -914,45 +914,67 @@ Create a new csv with for the audio data for training the model.
 #+end_src
 
 ** Feature extraction
-Extracted from [[https://medium.com/@notabelardoriojas/environmental-sound-classification-investigating-different-spectrograms-and-audio-augmentation-95f6989d0ae5][here]]
+Adapted from [[https://kaavyamaha12.medium.com/extracting-audio-features-using-librosa-3be4ff1fe57f][this source]]
 
-In this model we are using mel, mfcc, tempograms and chromagrams
+Extract following features from a sound: mel, mfcc, tempograms and chromagrams
+*** Imports
+#+begin_src python :session :results value :tangle ./../features/extract_features.py
+  import os
+  import pandas as pd
+  pd.set_option("display.max_rows", None)     # Show all rows
+  pd.set_option("display.max_columns", None)  # Show all columns
+  from multiprocessing import Pool
+  import warnings
+  import numpy as np
+  from scipy import stats
+  import librosa
+  from tqdm import tqdm
+  import utils
+  import json
+  import math
 
-#+begin_src python :session :results value :tangle extract_features.py
-import os
-import pandas as pd
-from multiprocessing import Pool
-import warnings
-import numpy as np
-from scipy import stats
-import librosa
-from tqdm import tqdm
-import utils
+  path = '/Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/dataset/SCHAEFFER/Claudio'
+  feature_sizes = dict(chroma_stft=12, chroma_cqt=12, chroma_cens=12,
+                             tonnetz=6, mfcc=20, rms=1, zcr=1,
+                             spectral_centroid=1, spectral_bandwidth=1,
+                             spectral_contrast=7, spectral_rolloff=1)
+  moments = ('mean', 'std', 'skew', 'kurtosis', 'median', 'min', 'max')
 
+#+end_src
+
+#+RESULTS:
+: None
+
+*** def columns
+#+begin_src python :session :results value :tangle ./../features/extract_features.py
   def columns():
       feature_sizes = dict(chroma_stft=12, chroma_cqt=12, chroma_cens=12,
-                           tonnetz=6, mfcc=20, rmse=1, zcr=1,
-                           spectral_centroid=1, spectral_bandwidth=1,
-                           spectral_contrast=7, spectral_rolloff=1)
+                             tonnetz=6, mfcc=20, rms=1, zcr=1,
+                             spectral_centroid=1, spectral_bandwidth=1,
+                             spectral_contrast=7, spectral_rolloff=1)
       moments = ('mean', 'std', 'skew', 'kurtosis', 'median', 'min', 'max')
 
       columns = []
       for name, size in feature_sizes.items():
           for moment in moments:
-              it = ((name, moment, '{:02d}'.format(i+1)) for i in range(size))
+              it = ((name, moment, (i+1)) for i in range(size))
               columns.extend(it)
 
       names = ('feature', 'statistics', 'number')
       columns = pd.MultiIndex.from_tuples(columns, names=names)
 
-      # More efficient to slice if indexes are sorted.
+        # More efficient to slice if indexes are sorted.
       return columns.sort_values()
+#+end_src
+#+RESULTS:
+: None
 
-
+*** def compute_features
+#+begin_src python :session :results value :tangle ./../features/extract_features.py
   def compute_features(tid):
 
       features = pd.Series(index=columns(), dtype='float64', name=tid)
-
+      
       # Catch warnings as exceptions (audioread leaks file descriptors).
       warnings.filterwarnings('error', module='librosa')
 
@@ -966,38 +988,38 @@ import utils
           features[name, 'max'] = np.max(values, axis=1)
 
       try:
-          filepath = os.path.join('/Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/dataset/SCHAEFFER/Claudio', tid)
-          
-          print(filepath)
+          filepath = os.path.join(path, tid)
+              
+          # print(filepath)
+              
           x, sr = librosa.load(filepath, sr=None)  # kaiser_fast
-
+          
           f = librosa.feature.zero_crossing_rate(x, frame_length=2048, hop_length=512)
           feature_stats('zcr', f)
-
-          cqt = np.abs(librosa.cqt(x, sr=sr, hop_length=512, bins_per_octave=12,
-                                   n_bins=7*12, tuning=None))
+          
+          cqt = np.abs(librosa.cqt(x, sr=sr, hop_length=512, bins_per_octave=12, n_bins=7*12, tuning=None))
           assert cqt.shape[0] == 7 * 12
           assert np.ceil(len(x)/512) <= cqt.shape[1] <= np.ceil(len(x)/512)+1
-
+          
           f = librosa.feature.chroma_cqt(C=cqt, n_chroma=12, n_octaves=7)
           feature_stats('chroma_cqt', f)
           f = librosa.feature.chroma_cens(C=cqt, n_chroma=12, n_octaves=7)
           feature_stats('chroma_cens', f)
           f = librosa.feature.tonnetz(chroma=f)
           feature_stats('tonnetz', f)
-
+          
           del cqt
           stft = np.abs(librosa.stft(x, n_fft=2048, hop_length=512))
           assert stft.shape[0] == 1 + 2048 // 2
           assert np.ceil(len(x)/512) <= stft.shape[1] <= np.ceil(len(x)/512)+1
           del x
-
+          
           f = librosa.feature.chroma_stft(S=stft**2, n_chroma=12)
           feature_stats('chroma_stft', f)
-
-          f = librosa.feature.rmse(S=stft)
-          feature_stats('rmse', f)
-
+          
+          f = librosa.feature.rms(S=stft)
+          feature_stats('rms', f)
+          
           f = librosa.feature.spectral_centroid(S=stft)
           feature_stats('spectral_centroid', f)
           f = librosa.feature.spectral_bandwidth(S=stft)
@@ -1006,7 +1028,7 @@ import utils
           feature_stats('spectral_contrast', f)
           f = librosa.feature.spectral_rolloff(S=stft)
           feature_stats('spectral_rolloff', f)
-
+          
           mel = librosa.feature.melspectrogram(sr=sr, S=stft**2)
           del stft
           f = librosa.feature.mfcc(S=librosa.power_to_db(mel), n_mfcc=20)
@@ -1016,30 +1038,151 @@ import utils
           print('{}: {}'.format(tid, repr(e)))
 
       return features
+#+end_src
+#+RESULTS:
+: None
 
+*** call_for_file
+#+begin_src python :session :results value :tangle ./../features/extract_features.py
+def call_for_file(audiof):
+  """Function to generate a json with features"""
+  # compute single file
+  # audiof = 'Berta_Trupia-003.wav'
+  jsonf, ext = os.path.splitext(audiof)
+  jsonf = jsonf + '-feat.json'
+  ser = compute_features(audiof)
+  json_file = ser.to_dict()
+  
+  # Add filename header
+  json_file = { str(k): v for k,v in json_file.items() }
+  json_file = {audiof: json_file}
+  
+  # Write to file
+  with open(os.path.join(path, jsonf), 'w', encoding='utf-8') as f:
+    f.write(json.dumps(json_file))
+#+end_src
+#+RESULTS:
+: None
+*** loop over files
+#+begin_src python :session :results value :tangle ./../features/extract_features.py
+  files = os.listdir(path)
+  for f in files:
+      if f.endswith('.wav'):
+          print(f)
+          call_for_file(f)
+#+end_src
+#+RESULTS:
+: None
+*** read all values from the given file
+#+begin_src python :session :results value :tangle ./../features/read_features.py
+filename = 'Berta_Trupia-feat.json'
+parent = filename[:-10] + '.wav'
+with open(os.path.join(path, filename)) as file:
+  jsonf = json.load(file)
+  for name, size in feature_sizes.items():
+    for mom in moments:
+      for i in range(size):
+        query = "('{n}', '{m}', {i})".format(n=name, m=mom, i=(i+1))
+        # print(parent + "/" + query)
+        print(jsonf[parent][query])
+#+end_src
+
+#+RESULTS:
+: None
+
+*** read a particular vector - function
+In this example get all values from chroma_cens, mean
+#+begin_src python :session :results value :tangle ./../features/read_features.py
+def query_features(filename, feat='chroma_cens', moment='mean', index = -1):
+  """This is a function to extract features from a json file associated with a sound file"""
+  params = (feat, moment)
+  value = []
+  parent = filename[:-10] + '.wav'
+  with open(os.path.join(path, filename)) as file:
+    jsonf = json.load(file)
+    for name, size in feature_sizes.items():
+      if name is params[0]:
+        for mom in moments:
+          if mom is params[1]:
+            if index < 0:
+              for i in range(size):
+                query = "('{n}', '{m}', {i})".format(n=name, m=mom, i=(i+1))
+                value.append(jsonf[parent][query])
+            elif index > 0:
+              query = "('{n}', '{m}', {i})".format(n=name, m=mom, i=index)
+              value.append(jsonf[parent][query])
+  return value
+
+print(query_features(filename='Berta_Trupia-007-feat.json', feat='tonnetz'))
+#+end_src
+
+#+RESULTS:
+: None
+*** retrieve the cosine similarity
+#+begin_src python :session :results value :tangle ./../features/read_features.py
+from sklearn.metrics.pairwise import cosine_similarity
+a = query_features(filename='Berta_Trupia-006-feat.json')
+b = query_features(filename='Berta_Trupia-007-feat.json')
+c = query_features(filename='Berta_Trupia-008-feat.json', feat='spectral_contrast')
+d = query_features(filename='Berta_Trupia-007-feat.json', feat='spectral_contrast')
+sim1 = cosine_similarity([a], [b])
+sim2 = cosine_similarity([c], [d])
+print(sim1)
+print(sim2)
+#+end_src
+
+#+RESULTS:
+: None
+
+*** read specific vectors
+#+begin_src python :session :results value :tangle ./../features/read_features.py
+  with open(os.path.join(path, 'Berta_Trupia-feat.json')) as file:
+      jsonf = json.load(file)
+      print(jsonf['Berta_Trupia.wav']["('chroma_cens', 'kurtosis', 1)"])
+      #x = json.loads(jsonf)
+      #        y = x['Berta_Trumpia.wav']
+#+end_src
+
+#+RESULTS:
+: None
+
+*** stuff
+#+begin_src python :session :results value :tangle ./../features/extract_features_stuff.py
   tracks = pd.read_csv('/Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/dataset/SCHAEFFER/metadata.csv')
   features = pd.DataFrame(index=tracks.index, columns=columns(), dtype=np.float32)
 
-  # More than usable CPUs to be CPU bound, not I/O bound. Beware memory.
-  #nb_workers = int(1.5 * len(os.sched_getaffinity(0)))
+    # More than usable CPUs to be CPU bound, not I/O bound. Beware memory.
+    #nb_workers = int(1.5 * len(os.sched_getaffinity(0)))
 
-  # Longest is ~11,000 seconds. Limit processes to avoid memory errors.
-  # table = ((5000, 1), (3000, 3), (2000, 5), (1000, 10), (0, nb_workers))
+    # Longest is ~11,000 seconds. Limit processes to avoid memory errors.
+    # table = ((5000, 1), (3000, 3), (2000, 5), (1000, 10), (0, nb_workers))
   tids = tracks.file_name
 
   print(tids)
-  pool = multiprocessing.Pool(4)
-  it = pool.imap_unordered(compute_features, tids)
+    pool = multiprocessing.Pool(4)
+    it = pool.imap_unordered(compute_features, tids)
 
-  for i, row in enumerate(tqdm(it, total=len(tids))):
-      features.loc[row.name] = row
-      
-      if i % 1000 == 0:
-          save(features, 10)
+    for i, row in enumerate(tqdm(it, total=len(tids))):
+        features.loc[row.name] = row
+        
+        if i % 1000 == 0:
+            save(features, 10)
 
-  save(features, 10)
-  test(features, 10)
+  import json
+  with open('/Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/dataset/SCHAEFFER/data.json', 'w', encoding='utf-8') as f:
+      json.dump(json_file, f, ensure_ascii=False, indent=4)
 
-compute_features('Berta_Trupia-003.wav')
+  # json stuff
+  file_name = "Berta_Trupia-003.wav"
+  feature = "cnhroma_cens"
+  stat = 'kurtosis'
+  num = [1, 2, 3]
+  value = 1.208494e+00
+  chroma_cens_reg = {"name": file_name "feat": feature}
+  json.dumps(chroma_cens_reg)
+
+  files = os.listdir(path)
+  for f in files:
+      print(f)
 #+end_src
 #+RESULTS:
