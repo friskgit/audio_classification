@@ -1,82 +1,82 @@
-import os
-import librosa
-import numpy as np
-import tensorflow as tf
-import sys
-from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense
-from tensorflow.keras.models import Model
-from tensorflow.keras.optimizers import Adam
-from sklearn.model_selection import train_test_split
-from tensorflow.keras.utils import to_categorical
-from tensorflow.image import resize
-from tensorflow.keras.models import load_model
+  import os
+  import librosa
+  import numpy as np
+  import tensorflow as tf
+  import sys
+  from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense
+  from tensorflow.keras.models import Model
+  from tensorflow.keras.optimizers import Adam
+  from sklearn.model_selection import train_test_split
+  from tensorflow.keras.utils import to_categorical
+  from tensorflow.image import resize
+  from tensorflow.keras.models import load_model
 
-# Define your folder structure
-dir = os.getcwd()
+  # Define your folder structure
+  dir = os.getcwd()
 
-data_dir = os.path.join(dir, 'training_data')
-# classes = ['Impulse', 'Iteration', 'Vsustain', 'Fsustain']
-classes = ['HarmSus', 'HarmImp', 'HarmIter', 'NoiseSus', 'NoiseImp', 'NoiseIter', 'CompositeSus', 'CompositeImp', 'CompositeIter']
-print(data_dir)
+  data_dir = os.path.join(dir, 'training_data')
+  # classes = ['Impulse', 'Iteration', 'Vsustain', 'Fsustain']
+  classes = ['HarmSus', 'HarmImp', 'HarmIter', 'NoiseSus', 'NoiseImp', 'NoiseIter', 'CompositeSus', 'CompositeImp', 'CompositeIter']
+  print(data_dir)
 
-# Load and preprocess audio data
-def load_and_preprocess_data(data_dir, classes, target_shape=(256, 256)):
-    data = []
-    labels = []
+  # Load and preprocess audio data
+  def load_and_preprocess_data(data_dir, classes, target_shape=(256, 256)):
+      data = []
+      labels = []
+      
+      for i, class_name in enumerate(classes):
+          class_dir = os.path.join(data_dir, class_name)
+          for filename in os.listdir(class_dir):
+              if filename.endswith('.wav'):
+                  file_path = os.path.join(class_dir, filename)
+                  audio_data, sample_rate = librosa.load(file_path, sr=None)
+                  # Perform preprocessing (e.g., convert to Mel spectrogram and resize)
+                  mel_spectrogram = librosa.feature.melspectrogram(y=audio_data, sr=sample_rate)
+                  mel_spectrogram = resize(np.expand_dims(mel_spectrogram, axis=-1), target_shape)
+                  data.append(mel_spectrogram)
+                  labels.append(i)
+                  
+      return np.array(data), np.array(labels)
+
+  # Load and preprocess audio data
+  def load_and_preprocess_data_mfcc(data_dir, classes, target_shape=(64, 64)):
+      data = []
+      labels = []
     
-    for i, class_name in enumerate(classes):
-        class_dir = os.path.join(data_dir, class_name)
-        for filename in os.listdir(class_dir):
-            if filename.endswith('.wav'):
-                file_path = os.path.join(class_dir, filename)
-                audio_data, sample_rate = librosa.load(file_path, sr=None)
-                # Perform preprocessing (e.g., convert to Mel spectrogram and resize)
-                mel_spectrogram = librosa.feature.melspectrogram(y=audio_data, sr=sample_rate)
-                mel_spectrogram = resize(np.expand_dims(mel_spectrogram, axis=-1), target_shape)
-                data.append(mel_spectrogram)
-                labels.append(i)
-                
-    return np.array(data), np.array(labels)
+      for i, class_name in enumerate(classes):
+          class_dir = os.path.join(data_dir, class_name)
+          for filename in os.listdir(class_dir):
+              if filename.endswith('.wav'):
+                  file_path = os.path.join(class_dir, filename)
+                  audio_data, sample_rate = librosa.load(file_path, sr=None)
+                  # Perform preprocessing (e.g., convert to Mel spectrogram and resize)
+                  mfcc = librosa.feature.mfcc(y=audio_data, sr=sample_rate, n_mfcc=32)
+                  mfcc = resize(np.expand_dims(mfcc, axis=-1), target_shape)
+                  data.append(mfcc)
+                  labels.append(i)
+                  
+                  return np.array(data), np.array(labels)
 
-# Load and preprocess audio data
-def load_and_preprocess_data_mfcc(data_dir, classes, target_shape=(64, 64)):
-    data = []
-    labels = []
-  
-    for i, class_name in enumerate(classes):
-        class_dir = os.path.join(data_dir, class_name)
-        for filename in os.listdir(class_dir):
-            if filename.endswith('.wav'):
-                file_path = os.path.join(class_dir, filename)
-                audio_data, sample_rate = librosa.load(file_path, sr=None)
-                # Perform preprocessing (e.g., convert to Mel spectrogram and resize)
-                mfcc = librosa.feature.mfcc(y=audio_data, sr=sample_rate, n_mfcc=32)
-                mfcc = resize(np.expand_dims(mfcc, axis=-1), target_shape)
-                data.append(mfcc)
-                labels.append(i)
-                
-                return np.array(data), np.array(labels)
+  # Split data into training and testing sets
+  data, labels = load_and_preprocess_data_mfcc(data_dir, classes)
+  labels = to_categorical(labels, num_classes=len(classes))  # Convert labels to one-hot encoding
+  X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.2, random_state=42)
 
-# Split data into training and testing sets
-data, labels = load_and_preprocess_data_mfcc(data_dir, classes)
-labels = to_categorical(labels, num_classes=len(classes))  # Convert labels to one-hot encoding
-X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.2, random_state=42)
+  # Create a neural network model
+  input_shape = X_train[0].shape
+  input_layer = Input(shape=input_shape)
+  x = Conv2D(32, (3, 3), activation='relu')(input_layer)
+  x = MaxPooling2D((2, 2))(x)
+  x = Conv2D(64, (3, 3), activation='relu')(x)
+  x = MaxPooling2D((2, 2))(x)
+  x = Flatten()(x)
+  x = Dense(64, activation='relu')(x)
+  output_layer = Dense(len(classes), activation='softmax')(x)
+  model = Model(input_layer, output_layer)
 
-# Create a neural network model
-input_shape = X_train[0].shape
-input_layer = Input(shape=input_shape)
-x = Conv2D(32, (3, 3), activation='relu')(input_layer)
-x = MaxPooling2D((2, 2))(x)
-x = Conv2D(64, (3, 3), activation='relu')(x)
-x = MaxPooling2D((2, 2))(x)
-x = Flatten()(x)
-x = Dense(64, activation='relu')(x)
-output_layer = Dense(len(classes), activation='softmax')(x)
-model = Model(input_layer, output_layer)
+  model.compile(optimizer=Adam(learning_rate=0.001), loss='categorical_crossentropy', metrics=['accuracy'])
 
-model.compile(optimizer=Adam(learning_rate=0.001), loss='categorical_crossentropy', metrics=['accuracy'])
-
-model.fit(X_train, y_train, epochs=10, batch_size=32, validation_data=(X_test, y_test))
+  model.fit(X_train, y_train, epochs=10, batch_size=32, validation_data=(X_test, y_test))
 
 #  file_name = sys.argv[1]
 #  dir = os.getcwd()

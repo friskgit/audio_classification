@@ -1,10 +1,12 @@
 * Topics
 - Feature extraction
-- TARTYP: 2D analysis or one-for-all
-- Visualization
-- Testing dataset
-  
-* Sort files and copy (2d)
+- Machine learning
+  - TARTYP: 2D analysis or one-for-all
+  - Visualization
+  - Testing dataset
+- Segmentation
+* Schaeffer 
+** Sort files and copy (2d)
 
 This script relies on the dataset SCHAEFFER that should be extracted at ../../dataset/SCHAEFFER/ relative to this script. The dataset may be downloaded from https://www.kaggle.com/datasets/maurizioberta/test-schaeffer?resource=download
 
@@ -59,7 +61,7 @@ To find additional classifiers its easy to run the script with different key wor
 : Copying files from dataset...\n\n
 : Done!\n
 
-* Sort files and copy (add dimension)
+** Sort files and copy (add dimension)
 This script relies on the dataset SCHAEFFER that should be extracted at ../../dataset/SCHAEFFER/ relative to this script. The dataset may be downloaded from https://www.kaggle.com/datasets/maurizioberta/test-schaeffer?resource=download
 
 See instruction [[*Sort files and copy (2d)][above]].
@@ -108,7 +110,7 @@ To find additional classifiers its easy to run the script with different key wor
   echo "Done!\n"
 #+end_src
 
-* Sort files and copy full TARTYP** Map
+** Sort files and copy full TARTYP** Map
 All children of .object.labels:
 |                                              | formed                 | impulse                  | formed                                 |
 |                                              | held sounds            |                          | iterative sounds                       |
@@ -125,7 +127,7 @@ All children of .object.labels:
 | .'mass-type'.'Vacillating sustain'           | CompositeSus - Y       |                          |                                        |
 | .'mass-type'.'Composite or Stratified sound' | -                      | CompositeImp - Y'        | CompositeIter - Y''                    |
 |----------------------------------------------+------------------------+--------------------------+----------------------------------------|
-** Script
+*** Script
 
 This script relies on the dataset SCHAEFFER that should be extracted at ../../dataset/SCHAEFFER/ relative to this script. The dataset may be downloaded from https://www.kaggle.com/datasets/maurizioberta/test-schaeffer?resource=download
 
@@ -350,7 +352,7 @@ To find additional classifiers its easy to run the script with different key wor
 
 #+end_src
 
-* SCHAEFFER database labels
+** SCHAEFFER database labels
 #+begin_src json
   {
     "Type":{
@@ -452,7 +454,7 @@ To find additional classifiers its easy to run the script with different key wor
 
 #+end_src
 
-* Model
+* ML Model
 
 Extracted from here: https://medium.com/@oluyaled/audio-classification-using-deep-learning-and-tensorflow-a-step-by-step-guide-5327467ee9ab
 
@@ -538,7 +540,7 @@ Check also here: https://kaavyamaha12.medium.com/extracting-audio-features-using
 
 #+RESULTS:
 
-* Current directory
+** Current directory
 #+begin_src python :results value output
     import os
     cwd = os.path.join(os.getcwd(), "code.org")
@@ -550,7 +552,7 @@ Check also here: https://kaavyamaha12.medium.com/extracting-audio-features-using
 : code.org
 : /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/stuff/code.org
 
-* Compare strings
+** Compare strings
 #+begin_src python :results value output
 import os
 dir = os.getcwd()
@@ -566,7 +568,7 @@ if('N0' in os.path.basename(file)):
 : /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/stuff
 : N1_impulse.wav
 
-* Stuff
+** Stuff
 #+begin_src python :results value output
   import os
   import glob
@@ -585,7 +587,7 @@ if('N0' in os.path.basename(file)):
 : Found audio file /Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/training_data/fsustain-1.wav
 : Found audio file /Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/training_data/iter_009.wav
 : Found audio file /Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/training_data/noise.wav
-** Resize
+*** Resize
 #+begin_src python :session :results value
 import numpy as np
 import tensorflow as tf
@@ -608,19 +610,19 @@ print(S_expanded)
 #+RESULTS:
 : None
 
-* Compiling the model
+** Compiling the model
 #+begin_src python :session python :tangle /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/model.py
   model.compile(optimizer=Adam(learning_rate=0.001), loss='categorical_crossentropy', metrics=['accuracy'])
 #+end_src
 
 #+RESULTS:
 
-* Training the model
+** Training the model
 #+begin_src python :tangle /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/model.py
   model.fit(X_train, y_train, epochs=10, batch_size=32, validation_data=(X_test, y_test))
 #+end_src
 
-* Save the model
+** Save the model
 The 'dir' variable is a hack to handle emacs directories. This should be replaced by os.getcwd().
 #+begin_src python :tangle /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/model.py
 #  file_name = sys.argv[1]
@@ -630,13 +632,13 @@ model.save(os.path.join(dir, 'audio_classification.keras'))
 
 #+RESULTS:
 
-* Model evaluation
+** Model evaluation
 #+begin_src python :tangle /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/eval_model.py
   test_accuracy=model.evaluate(X_test,y_test,verbose=0)
   print(test_accuracy[1])
 #+end_src
 
-* Testing the model
+** Testing the model
 This proves to be working with limited tests. Next thing to do is work out the optimal settings for analysis below. Especially the spectrogram settings and we should also test with other spectrograms than mel.
 
 #+begin_src python :results value output :tangle /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/eval_model.py
@@ -721,7 +723,7 @@ This proves to be working with limited tests. Next thing to do is work out the o
       print(f', , {accuracy:.4f}, {predicted_class}, {match}')
 #+end_src
 
-* Testing librosa features
+** Testing librosa features
 #+name: plotme
 #+begin_src python :session :results value :noweb yes :tangle test_audio.py :var myvar=3
   import os
@@ -740,7 +742,7 @@ This proves to be working with limited tests. Next thing to do is work out the o
 
 #+RESULTS: plotme
 
-** melspectrogram
+*** melspectrogram
 #+begin_src python :noweb yes :tangle ./../features/melspec.py 
    <<plotme>>
    target_shape = (256, 256)
@@ -755,7 +757,7 @@ This proves to be working with limited tests. Next thing to do is work out the o
    plt.show()
 #+end_src
 
-** mfcc
+*** mfcc
 #+begin_src python :noweb yes :tangle ./../features/mfcc.py
   <<plotme>>
 
@@ -776,7 +778,7 @@ This proves to be working with limited tests. Next thing to do is work out the o
 
 #+RESULTS:
 
-** mfcc with resize
+*** mfcc with resize
 #+begin_src python :noweb yes :tangle mfcc_resize.py
   mfccs = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=20)
   desired_length = 100
@@ -796,7 +798,7 @@ This proves to be working with limited tests. Next thing to do is work out the o
   plt.show()
 #+end_src
 
-** beat detections
+*** beat detections
 #+begin_src python :noweb yes :tangle ./../features/beat.py
   <<plotme>>
   import scipy.stats
@@ -835,7 +837,7 @@ This proves to be working with limited tests. Next thing to do is work out the o
   plt.show()
 #+end_src
 
-** beat detections
+*** beat detections
 #+begin_src python :noweb yes :tangle ./../features/poly_features.py
   <<plotme>>
   S = np.abs(librosa.stft(y))
@@ -868,7 +870,7 @@ This proves to be working with limited tests. Next thing to do is work out the o
 
 #+RESULTS:
 
-* Test result
+** Test result
 A first quick run just testing two files, one in each category, was successful:
 
 >>> 
@@ -889,8 +891,8 @@ The audio is classified as: Iteration
 Accuracy: 0.8888
 >>> 
 
-* New expanded model
-** Dataset
+** New expanded model
+*** Dataset
 Create a new csv with for the audio data for training the model.
 #+begin_src shell :results output :dir /Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/training_data
   #!/bin/bash
@@ -913,11 +915,12 @@ Create a new csv with for the audio data for training the model.
   done < metadata.csv
 #+end_src
 
-** Feature extraction
+* Feature extraction with librosa
 Adapted from [[https://kaavyamaha12.medium.com/extracting-audio-features-using-librosa-3be4ff1fe57f][this source]]
 
 Extract following features from a sound: mel, mfcc, tempograms and chromagrams
-*** Imports
+* Extraction
+** imports
 #+begin_src python :session :results value :tangle ./../features/extract_features.py
   import os
   import pandas as pd
@@ -943,9 +946,8 @@ Extract following features from a sound: mel, mfcc, tempograms and chromagrams
 #+end_src
 
 #+RESULTS:
-: None
 
-*** def columns
+** def columns
 #+begin_src python :session :results value :tangle ./../features/extract_features.py
   def columns():
       feature_sizes = dict(chroma_stft=12, chroma_cqt=12, chroma_cens=12,
@@ -969,7 +971,7 @@ Extract following features from a sound: mel, mfcc, tempograms and chromagrams
 #+RESULTS:
 : None
 
-*** def compute_features
+** def compute_features
 #+begin_src python :session :results value :tangle ./../features/extract_features.py
   def compute_features(tid):
 
@@ -1042,7 +1044,7 @@ Extract following features from a sound: mel, mfcc, tempograms and chromagrams
 #+RESULTS:
 : None
 
-*** call_for_file
+** call_for_file
 #+begin_src python :session :results value :tangle ./../features/extract_features.py
 def call_for_file(audiof):
   """Function to generate a json with features"""
@@ -1063,7 +1065,7 @@ def call_for_file(audiof):
 #+end_src
 #+RESULTS:
 : None
-*** loop over files
+** loop over files
 #+begin_src python :session :results value :tangle ./../features/extract_features.py
   files = os.listdir(path)
   for f in files:
@@ -1073,7 +1075,7 @@ def call_for_file(audiof):
 #+end_src
 #+RESULTS:
 : None
-*** read all values from the given file
+** read all values from the given file
 #+begin_src python :session :results value :tangle ./../features/read_features.py
 filename = 'Berta_Trupia-feat.json'
 parent = filename[:-10] + '.wav'
@@ -1090,7 +1092,7 @@ with open(os.path.join(path, filename)) as file:
 #+RESULTS:
 : None
 
-*** read a particular vector - function
+** read a particular vector - function
 In this example get all values from chroma_cens, mean
 #+begin_src python :session :results value :tangle ./../features/read_features.py
 def query_features(filename, feat='chroma_cens', moment='mean', index = -1):
@@ -1118,7 +1120,7 @@ print(query_features(filename='Berta_Trupia-007-feat.json', feat='tonnetz'))
 
 #+RESULTS:
 : None
-*** retrieve the cosine similarity
+** retrieve the cosine similarity
 #+begin_src python :session :results value :tangle ./../features/read_features.py
 from sklearn.metrics.pairwise import cosine_similarity
 a = query_features(filename='Berta_Trupia-006-feat.json')
@@ -1134,7 +1136,7 @@ print(sim2)
 #+RESULTS:
 : None
 
-*** read specific vectors
+** read specific vectors
 #+begin_src python :session :results value :tangle ./../features/read_features.py
   with open(os.path.join(path, 'Berta_Trupia-feat.json')) as file:
       jsonf = json.load(file)
@@ -1146,7 +1148,7 @@ print(sim2)
 #+RESULTS:
 : None
 
-*** stuff
+** stuff
 #+begin_src python :session :results value :tangle ./../features/extract_features_stuff.py
   tracks = pd.read_csv('/Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/dataset/SCHAEFFER/metadata.csv')
   features = pd.DataFrame(index=tracks.index, columns=columns(), dtype=np.float32)
@@ -1186,3 +1188,42 @@ print(sim2)
       print(f)
 #+end_src
 #+RESULTS:
+
+* Segmentation
+File segmentation in in meaningful segments for files longer than 4s. Each segment should be no longer than 4s, and not shorter than 1s (roughly)
+
+#+begin_src python :session :results value :tangle ./../features/segment_audio.py
+from maad import sound
+from maad.rois import find_rois_cwt
+from maad.util import plot_spectrogram
+import matplotlib.pyplot as plt
+import soundfile as sf
+import os
+from pathlib import Path
+
+audio_dir = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/segmentation/audio'
+audio = 'dataton2.wav'
+audio_name = Path(audio).stem
+segment_dir = os.path.join(audio_dir, audio_name + '_segments')
+os.mkdir(segment_dir)
+s, fs = sound.load(os.path.join(audio_dir, audio))
+Sxx, tn, fn, ext = sound.spectrogram(s, fs, nperseg=1024, noverlap=512)
+# uncomment if you want to plot 
+# plot_spectrogram(Sxx, extent=ext, db_range=60, gain=20, colorbar=False, figsize=(2.5,10))
+# plt.show()
+# print(df_trill)
+
+regions = find_rois_cwt(s, fs, flims=(80,10000), tlen=4, th=0.05, display=False, figsize=(10,6))
+# print segments
+print(regions.head())
+
+for i, row in regions.iterrows():
+    start = int(row['min_t'] * fs)
+    end = int(row['max_t'] * fs)
+    segment = s[start:end]
+    sf.write(os.path.join(segment_dir, Path(audio).stem + '_segment_{}.wav'.format(i)), segment, fs)
+
+#+end_src
+
+#+RESULTS:
+: None
