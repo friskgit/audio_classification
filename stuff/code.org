@@ -1227,3 +1227,33 @@ for i, row in regions.iterrows():
 
 #+RESULTS:
 : None
+
+#+begin_src python :session :results vaule :tangle ./../features/soundfile.py
+from maad import sound
+import librosa
+from pathlib import Path
+import os
+
+class SoundFile:
+
+  length = 0
+  s = 0
+  fs = 48000
+  truncated = False
+  MAX_LENGTH = 4
+  
+  def __init__(self, path, name):
+    self.name = name
+    self.path = path
+    self.s, self.fs = sound.load(os.path.join(self.path, self.name))
+    self.length = librosa.get_duration(path = os.path.join(self.path, self.name))
+    if self.length > self.MAX_LENGTH:
+      truncated = True
+
+  def printMe(self):
+    print(f"{self.name} is the audio.")
+    print(f"{self.length} is the length")
+#+end_src
+
+#+RESULTS:
+: None
