@@ -921,6 +921,7 @@ Adapted from [[https://kaavyamaha12.medium.com/extracting-audio-features-using-l
 Extract following features from a sound: mel, mfcc, tempograms and chromagrams
 * Extraction
 ** imports
+#+name: py_imports
 #+begin_src python :session :results value :tangle ./../features/extract_features.py
   import os
   import pandas as pd
@@ -1201,28 +1202,35 @@ import soundfile as sf
 import os
 from pathlib import Path
 
-audio_dir = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/segmentation/audio'
-audio = 'dataton2.wav'
-audio_name = Path(audio).stem
-segment_dir = os.path.join(audio_dir, audio_name + '_segments')
-os.mkdir(segment_dir)
-s, fs = sound.load(os.path.join(audio_dir, audio))
-Sxx, tn, fn, ext = sound.spectrogram(s, fs, nperseg=1024, noverlap=512)
-# uncomment if you want to plot 
-# plot_spectrogram(Sxx, extent=ext, db_range=60, gain=20, colorbar=False, figsize=(2.5,10))
-# plt.show()
-# print(df_trill)
+def segmentAudio(path):
+# audio_dir = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/segmentation/audio'
+# audio = 'dataton2.wav'
+  audio_name = Path(audio).stem
+  segment_dir = os.path.join(audio_dir, audio_name + '_segments')
+  segment_exists = os.path.isdir(segment_dir)
+  segments = []
+  if not segment_exists:
+    os.mkdir(segment_dir)
+    
+    s, fs = sound.load(os.path.join(audio_dir, audio))
+    Sxx, tn, fn, ext = sound.spectrogram(s, fs, nperseg=1024, noverlap=512)
+    # uncomment if you want to plot 
+    # plot_spectrogram(Sxx, extent=ext, db_range=60, gain=20, colorbar=False, figsize=(2.5,10))
+    # plt.show()
+    # print(df_trill)
 
-regions = find_rois_cwt(s, fs, flims=(80,10000), tlen=4, th=0.05, display=False, figsize=(10,6))
-# print segments
-print(regions.head())
+    regions = find_rois_cwt(s, fs, flims=(80,10000), tlen=4, th=0.05, display=False, figsize=(10,6))
+    # print segments
+    # print(regions.head())
 
-for i, row in regions.iterrows():
-    start = int(row['min_t'] * fs)
-    end = int(row['max_t'] * fs)
-    segment = s[start:end]
-    sf.write(os.path.join(segment_dir, Path(audio).stem + '_segment_{}.wav'.format(i)), segment, fs)
+    for i, row in regions.iterrows():
+      start = int(row['min_t'] * fs)
+      end = int(row['max_t'] * fs)
+      segment = s[start:end]
+      segments.append = os.path.join(segment_dir, Path(audio).stem + '_segment_{}.wav'.format(i))
+      sf.write(segments[i], segment, fs)
 
+  return segments
 #+end_src
 
 #+RESULTS:
@@ -1248,11 +1256,13 @@ class SoundFile:
     self.s, self.fs = sound.load(os.path.join(self.path, self.name))
     self.length = librosa.get_duration(path = os.path.join(self.path, self.name))
     if self.length > self.MAX_LENGTH:
+      segmentAudio(os.path.join(self.path, self.name))
       truncated = True
 
   def printMe(self):
     print(f"{self.name} is the audio.")
     print(f"{self.length} is the length")
+
 #+end_src
 
 #+RESULTS:
