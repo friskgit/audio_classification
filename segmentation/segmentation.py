@@ -24,7 +24,12 @@ The audio file
 --display bool false
 --time int 3
 --threshold int 0
+
+Example call:
+
+$ python3 segmentation.py ./audio/blaa.wav --minfrq 500 --maxfrq 10000 --threshold 0.001 --display 1
 """
+
 parser = argparse.ArgumentParser()
 parser.add_argument("audiofile")
 parser.add_argument("--minfrq", nargs='?', type=int, default=500)
@@ -33,9 +38,13 @@ parser.add_argument("--display", nargs='?', type=bool, default=False)
 parser.add_argument("--time", nargs='?', type=int, default=3)
 parser.add_argument("--threshold", nargs='?', type=float, default=0)
 args=parser.parse_args()
+
 segments = []
 audio_name = Path(args.audiofile).stem
 dir_name = os.path.dirname(args.audiofile)
+segment_dir = os.path.join(dir_name, audio_name + '_segments')
+if not os.path.isdir(segment_dir):
+  os.mkdir(segment_dir)
 
 s, fs = sound.load(args.audiofile)
 Sxx, tn, fn, ext = sound.spectrogram(s, fs, nperseg=1024, noverlap=512)
@@ -43,10 +52,11 @@ regions = find_rois_cwt(s, fs, flims=(args.minfrq, args.maxfrq), tlen=args.time,
 plt.show()
 
 print(regions.head())
-print(dir_name + '/' + audio_name + '_segment_{}.wav'.format(1))
+# print("Split the audio up in {} segments".format(regions.size))
+# print(dir_name + '/' + audio_name + '_segment_{}.wav'.format(1))
 for i, row in regions.iterrows():
-    start = int(row['min_t'] * fs)
-    end = int(row['max_t'] * fs)
-    segment = s[start:end]
-    sf.write(dir_name + '/' + audio_name + '_segment_{}.wav'.format(i), segment, fs)
+  start = int(row['min_t'] * fs)
+  end = int(row['max_t'] * fs)
+  segment = s[start:end]
+  sf.write(segment_dir + '/' + audio_name + '_segment_{}.wav'.format(i), segment, fs)
 
