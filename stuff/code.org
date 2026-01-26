@@ -958,7 +958,8 @@ def columns():
   feature_sizes = dict(chroma_stft=12, chroma_cqt=12, chroma_cens=12,
                        tonnetz=6, mfcc=20, rms=1, zcr=1,
                        spectral_centroid=1, spectral_bandwidth=1,
-                       spectral_contrast=7, spectral_rolloff=1)
+                       spectral_contrast=7, spectral_rolloff=1,
+                       tempogram=13)
   moments = ('mean', 'std', 'skew', 'kurtosis', 'median', 'min', 'max')
 
   columns = []
@@ -977,7 +978,7 @@ def columns():
 : None
 
 ** def compute_features
-This function computes the features for each sound file. It depends on [[*def columns][def columns]].
+This function computes the features for each sound file. It depends on [[*def columns][def columns]]. The anonymous function 'feature_stats' extract reductions of the data in various ways as a panda.Series object.
 #+begin_src python :session :results value :tangle ./../features/extract_features.py
 def compute_features(tid):
 
@@ -1001,6 +1002,10 @@ def compute_features(tid):
     # print(filepath)
     
     x, sr = librosa.load(filepath, sr=None)  # kaiser_fast
+
+    tempogram = librosa.feature.tempogram(y=x, sr=sr)
+    f = librosa.feature.tempogram_ratio(tg=tempogram, sr=sr)
+    feature_stats('tempogram', f)
     
     f = librosa.feature.zero_crossing_rate(x, frame_length=2048, hop_length=512)
     feature_stats('zcr', f)
@@ -1060,10 +1065,12 @@ def call_for_file(audiof):
   jsonf = jsonf + '-feat.json'
   ser = compute_features(audiof)
   json_file = ser.to_dict()
+
+  full_path = os.path.abspath(audiof)
   
   # Add filename header
   json_file = { str(k): v for k,v in json_file.items() }
-  json_file = {audiof: json_file}
+  json_file = {full_path: json_file}
   
   # Write to file
   with open(os.path.join(path, jsonf), 'w', encoding='utf-8') as f:
@@ -1077,7 +1084,7 @@ files = os.listdir(path)
 for f in files:
   if f.endswith('.wav'):
     print(f)
-    call_for_file(f)
+    # call_for_file(f)
 #+end_src
 #+RESULTS:
 ** read all values from the given file
