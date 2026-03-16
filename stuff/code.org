@@ -951,6 +951,7 @@ moments = ('mean', 'std', 'skew', 'kurtosis', 'median', 'min', 'max')
 
 #+RESULTS:
 
+
 ** def columns
 Utility function for setting up the data structures for [[*def compute_features][def compute_features]]
 #+begin_src python :session :results value :tangle ./../features/extract_features.py
@@ -1160,20 +1161,27 @@ This function takes a vector from an analyzed file and a directory of json files
 def compare_vectors(master, directory, moment='mean'):
   """Take the vector of the master file and a name of a directory of json files and outputs the cosine similarity between the two. Optionally supply the moment to use."""
   from sklearn.metrics.pairwise import cosine_similarity
-  results = {}
+  results = {
+    'name': ['default'],
+    'value': [0]
+  }
   for f in os.listdir(directory):
     if f.endswith('.json'):
       feat = stack_features(os.path.join(directory, f))
       sim = cosine_similarity([master], [feat])
-      print(f)
-      print(sim)
+#      results.update({f[:-10]: sim[0]})
+      results['name'].append(f[:-10])
+      results['value'].append(sim[0][0])
+  results_df = pd.DataFrame(results)
+#  results_df.sort_values(by='value')
+  print(results_df.sort_values(by='value'))
+#      print(sim)
 #      print(f + ': ' + sim)
 
 #+end_src
 
 #+RESULTS:
 : None
-
 
 ** retrieve the cosine similarity
 #+begin_src python :session :results value :tangle ./../features/read_features.py
