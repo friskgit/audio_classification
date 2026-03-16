@@ -1074,14 +1074,18 @@ def call_for_file(audiof):
 : None
 ** loop over files
 #+begin_src python :session :results value :tangle ./../features/extract_features.py
-def call_for_files(directory):
+def call_for_files(directory, func, selector='.wav'):
+  """Call 'func' for each matching file in the directory 'directory'"""
   files = os.listdir(directory)
+  paths = []
   for f in files:
-    if f.endswith('.wav'):
+    if f.endswith(selector):
+#      paths.append(os.path.join(directory, f))
       print(os.path.join(directory, f))
-      call_for_file(os.path.join(directory, f))
+      func(os.path.join(directory, f))
 #+end_src
 #+RESULTS:
+: None
 ** read all values from the given file
 #+begin_src python :session :results value :tangle ./../features/read_features.py
 filename = '/Users/henrik_frisk/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/dataset/SCHAEFFER/Alberto/campione 9-feat.json'
@@ -1142,7 +1146,6 @@ def stack_features(filename, moment='mean'):
         if mom is moment:
           for i in range(size):
             query = "('{n}', '{m}', {i})".format(n=name, m=mom, i=(i+1))
-            print(query)
             stacked.append(jsonf[parent][query])
   return stacked
 
@@ -1151,6 +1154,27 @@ def stack_features(filename, moment='mean'):
 
 #+RESULTS:
 : None
+** retrieve the cosine similarity betwen a master file and a selected file
+This function takes a vector from an analyzed file and a directory of json files to compare it with.
+#+begin_src python :session :results value :tangle ./../features/read_features.py
+def compare_vectors(master, directory, moment='mean'):
+  """Take the vector of the master file and a name of a directory of json files and outputs the cosine similarity between the two. Optionally supply the moment to use."""
+  from sklearn.metrics.pairwise import cosine_similarity
+  results = {}
+  for f in os.listdir(directory):
+    if f.endswith('.json'):
+      feat = stack_features(os.path.join(directory, f))
+      sim = cosine_similarity([master], [feat])
+      print(f)
+      print(sim)
+#      print(f + ': ' + sim)
+
+#+end_src
+
+#+RESULTS:
+: None
+
+
 ** retrieve the cosine similarity
 #+begin_src python :session :results value :tangle ./../features/read_features.py
 from sklearn.metrics.pairwise import cosine_similarity
