@@ -1075,7 +1075,7 @@ def call_for_file(audiof):
 : None
 ** loop over files
 #+begin_src python :session :results value :tangle ./../features/extract_features.py
-def call_for_files(directory, func, selector='.wav'):
+def call_for_files(directory, selector='.wav'):
   """Call 'func' for each matching file in the directory 'directory'"""
   files = os.listdir(directory)
   paths = []
@@ -1083,7 +1083,7 @@ def call_for_files(directory, func, selector='.wav'):
     if f.endswith(selector):
 #      paths.append(os.path.join(directory, f))
       print(os.path.join(directory, f))
-      func(os.path.join(directory, f))
+      call_for_file(os.path.join(directory, f))
 #+end_src
 #+RESULTS:
 : None
@@ -1155,7 +1155,7 @@ def stack_features(filename, moment='mean'):
 
 #+RESULTS:
 : None
-** retrieve the cosine similarity betwen a master file and a selected file
+** retrieve the cosine similarity between a master file and all files in a directory
 This function takes a vector from an analyzed file and a directory of json files to compare it with.
 #+begin_src python :session :results value :tangle ./../features/read_features.py
 def compare_vectors(master, directory, moment='mean'):
@@ -1169,14 +1169,10 @@ def compare_vectors(master, directory, moment='mean'):
     if f.endswith('.json'):
       feat = stack_features(os.path.join(directory, f))
       sim = cosine_similarity([master], [feat])
-#      results.update({f[:-10]: sim[0]})
       results['name'].append(f[:-10])
       results['value'].append(sim[0][0])
   results_df = pd.DataFrame(results)
-#  results_df.sort_values(by='value')
   print(results_df.sort_values(by='value'))
-#      print(sim)
-#      print(f + ': ' + sim)
 
 #+end_src
 
