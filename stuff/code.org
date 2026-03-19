@@ -1156,7 +1156,7 @@ def stack_features(filename, moment='mean'):
 #+RESULTS:
 : None
 ** retrieve the cosine similarity between a master file and all files in a directory
-This function takes a vector from an analyzed file and a directory of json files to compare it with.
+This function takes a vector from an analyzed file and a directory of json files to compare it with. This function can be called with ~compare_vectors(stack_features('./audiofile.wav'), './here' , moment='mean')
 #+begin_src python :session :results value :tangle ./../features/read_features.py
 def compare_vectors(master, directory, moment='mean'):
   """Take the vector of the master file and a name of a directory of json files and outputs the cosine similarity between the two. Optionally supply the moment to use."""
@@ -1249,7 +1249,7 @@ with open(os.path.join(path, 'campione 9-feat.json')) as file:
 #+RESULTS:
 
 * Segmentation
-File segmentation in in meaningful segments for files longer than 4s. Each segment should be no longer than 4s, and not shorter than 1s (roughly)
+File segmentation in meaningful segments for files longer than 4s. Each segment should be no longer than 4s, and not shorter than 1s (roughly)
 
 #+begin_src python :session :results value :tangle ./../features/segment_audio.py
 from maad import sound
@@ -1264,7 +1264,7 @@ def segmentAudio(path):
 # audio_dir = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/segmentation/audio'
 # audio = 'dataton2.wav'
   audio_name = Path(audio).stem
-  segment_dir = os.path.join(audio_dir, audio_name + '_segments')
+  segment_dir = os.path.join(audio_name + '_segments')
   segment_exists = os.path.isdir(segment_dir)
   segments = []
   if not segment_exists:
@@ -1285,7 +1285,7 @@ def segmentAudio(path):
       start = int(row['min_t'] * fs)
       end = int(row['max_t'] * fs)
       segment = s[start:end]
-      segments.append = os.path.join(segment_dir, Path(audio).stem + '_segment_{}.wav'.format(i))
+      segments.append = os.path.join(Path(audio).stem + '_segment_{}.wav'.format(i))
       sf.write(segments[i], segment, fs)
 
   return segments
@@ -1293,7 +1293,7 @@ def segmentAudio(path):
 
 #+RESULTS:
 : None
-
+This is a class describing a soundfile in the system. This class is used for segmentation.
 #+begin_src python :session :results vaule :tangle ./../features/soundfile.py
 from maad import sound
 from maad.rois import find_rois_cwt
@@ -1306,14 +1306,15 @@ class SoundFile:
   
   length = 0
   soundfile = 0
-  fs = 48000
-  truncated = False
+#  fs = 48000
+  truncated = 0
   MAX_LENGTH = 4
   segments = []
   minfrq = 500
   maxfrq = 10000
   tlen = 3
   threshold = 0
+  segment_dir = ''
   
   def __init__(self, path, name):
     self.name = name
@@ -1322,13 +1323,19 @@ class SoundFile:
     self.length = librosa.get_duration(path = os.path.join(self.path, self.name))
     if self.length > self.MAX_LENGTH:
       self.segmentAudio()
-      truncated = True
+
+  def printPath(self):
+    if self.truncated:
+      return self.segment_dir
+    else:
+      return self.path
 
   def printMe(self):
     print(f"{self.name} is the audio.")
     print(f"{self.length} is the length")
 
   def segmentAudio(self):
+    self.truncated = 1
     regions = find_rois_cwt(self.soundfile, self.fs, flims=(self.minfrq, self.maxfrq), tlen=self.tlen, th=self.threshold, display=False, figsize=(10,6))
     segment_dir = os.path.join(self.path, Path(self.name).stem + '_segments')
     if not os.path.isdir(segment_dir):
@@ -1338,9 +1345,6 @@ class SoundFile:
       end = int(row['max_t'] * self.fs)
       segment = self.soundfile[start:end]
       sf.write(segment_dir + '/' + Path(self.name).stem + '_segment_{}.wav'.format(i), segment, self.fs)
-
-
-
 #+end_src
 
 #+RESULTS:
