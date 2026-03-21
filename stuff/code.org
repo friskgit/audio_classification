@@ -1065,6 +1065,7 @@ def call_for_file(audiof):
   # Add filename header
   json_file = { str(k): v for k,v in json_file.items() }
   json_file = {audiof: json_file}
+#  json_file['segment'] = 
 #  json_file = {'file_name': 'Yo', json_file}
   
   # Write to file
@@ -1303,26 +1304,28 @@ from pathlib import Path
 import os
 
 class SoundFile:
-  
-  length = 0
-  soundfile = 0
-#  fs = 48000
-  truncated = 0
   MAX_LENGTH = 4
-  segments = []
   minfrq = 500
   maxfrq = 10000
   tlen = 3
   threshold = 0
-  segment_dir = ''
   
   def __init__(self, path, name):
     self.name = name
     self.path = path
+    self.segment_dir = ''
+    self.segment_names = []
+    self.start = []
+    self.end = []
     self.soundfile, self.fs = sound.load(os.path.join(self.path, self.name))
     self.length = librosa.get_duration(path = os.path.join(self.path, self.name))
     if self.length > self.MAX_LENGTH:
+      self.segmented = True
       self.segmentAudio()
+    else:
+      self.start.append(0)
+      self.end.append(int(self.length * self.fs))
+      self.segmented = False
 
   def printPath(self):
     if self.truncated:
@@ -1333,18 +1336,69 @@ class SoundFile:
   def printMe(self):
     print(f"{self.name} is the audio.")
     print(f"{self.length} is the length")
+    for j in range(len(self.start)):
+      print('Segment:', self.segment_names[j])
+      print('Segment is:', self.start[j], ':', self.end[j])
 
   def segmentAudio(self):
+    """Segment longer files into segments"""
     self.truncated = 1
     regions = find_rois_cwt(self.soundfile, self.fs, flims=(self.minfrq, self.maxfrq), tlen=self.tlen, th=self.threshold, display=False, figsize=(10,6))
-    segment_dir = os.path.join(self.path, Path(self.name).stem + '_segments')
-    if not os.path.isdir(segment_dir):
-      os.mkdir(segment_dir)
+    self.segment_dir = os.path.join(self.path, Path(self.name).stem + '_segments')
+    if not os.path.isdir(self.segment_dir):
+      os.mkdir(self.segment_dir)
     for i, row in regions.iterrows():
-      start = int(row['min_t'] * self.fs)
-      end = int(row['max_t'] * self.fs)
-      segment = self.soundfile[start:end]
-      sf.write(segment_dir + '/' + Path(self.name).stem + '_segment_{}.wav'.format(i), segment, self.fs)
+      self.start.append(int(row['min_t'] * self.fs))
+      self.end.append(int(row['max_t'] * self.fs))
+      segment = self.soundfile[int(row['min_t'] * self.fs):int(row['max_t'] * self.fs)]
+      self.segment_names.append(self.segment_dir + '/' + Path(self.name).stem + '_segment_{}.wav'.format(i))
+      sf.write(self.segment_names[i], segment, self.fs)
+
+  def analyze(self):
+    """Function to generate a json with features for each segment (if applicable)"""
+    audiof = os.path.join(self.path, self.name)
+    jsonf, ext = os.path.splitext(audiof)
+    jsonf = jsonf + '-feat.json'
+    ser = compute_features(audiof)
+    json_file = ser.to_dict()
+
+    full_path = os.path.abspath(audiof)
+  
+    # Add filename header
+    json_file = { str(k): v for k,v in json_file.items() }
+    json_file = {audiof: json_file}
+#    json_file[self.segment_names] = 
+  
+    # Write to file
+    with open(os.path.join(path, jsonf), 'w', encoding='utf-8') as f:
+      f.write(json.dumps(json_file))
+
+  def analyzebu(self):
+    """Function to generate a json with features for each segment (if applicable)"""
+    audiof = os.path.join(self.path, self.name)
+    jsonf, ext = os.path.splitext(audiof)
+    jsonf = jsonf + '-feat.json'
+    ser = compute_features(audiof)
+    json_file = ser.to_dict()
+
+    full_path = os.path.abspath(audiof)
+  
+    # Add filename header
+    json_file = { str(k): v for k,v in json_file.items() }
+    json_file = {audiof: json_file}
+#    json_file[self.segment_names] = 
+  
+    # Write to file
+    with open(os.path.join(path, jsonf), 'w', encoding='utf-8') as f:
+      f.write(json.dumps(json_file))
+
+  def segment_file_name(self, fname):
+    import re
+    x = re.findall('.*_segment_[0-9]+.wav', fname)
+    if len(x) < 1:
+      return False
+    else:
+      return True
 #+end_src
 
 #+RESULTS:
