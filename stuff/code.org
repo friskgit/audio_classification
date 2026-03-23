@@ -1294,6 +1294,8 @@ def segmentAudio(path):
 
 #+RESULTS:
 : None
+
+** SoundFile class
 This is a class describing a soundfile in the system. This class is used for segmentation.
 #+begin_src python :session :results vaule :tangle ./../features/soundfile.py
 from maad import sound
@@ -1302,6 +1304,8 @@ import librosa
 import soundfile as sf
 from pathlib import Path
 import os
+from IPython.display import Audio
+import subprocess
 
 class SoundFile:
   MAX_LENGTH = 4
@@ -1340,6 +1344,12 @@ class SoundFile:
       print('Segment:', self.segment_names[j])
       print('Segment is:', self.start[j], ':', self.end[j])
 
+  def play(self):
+    print(f"{self.name} is playing...")
+    subprocess.call(['play', self.name])
+#    Audio(data=self.soundfile, rate=self.fs)
+    
+  
   def segmentAudio(self):
     """Segment longer files into segments"""
     self.truncated = 1
@@ -1356,22 +1366,33 @@ class SoundFile:
 
   def analyze(self):
     """Function to generate a json with features for each segment (if applicable)"""
-    audiof = os.path.join(self.path, self.name)
-    jsonf, ext = os.path.splitext(audiof)
-    jsonf = jsonf + '-feat.json'
-    ser = compute_features(audiof)
-    json_file = ser.to_dict()
+    if self.segmented:
+      for i in range(len(self.segment_names)):
+        f = self.segment_names[i]
+        jsonf, ext = os.path.splitext(f)
+        file_name = os.path.basename(self.name)
+        no_ext, ext = os.path.splitext(self.name)
+        no_ext = no_ext + '-feat.json'
+        jsonf = os.path.join(str(Path(os.path.dirname(f)).parents[0]), no_ext)
+        print(jsonf)
 
-    full_path = os.path.abspath(audiof)
+    else:
+      audiof = os.path.join(self.path, self.name)
+      jsonf, ext = os.path.splitext(audiof)
+      jsonf = jsonf + '-feat.json'
+      ser = compute_features(audiof)
+      json_file = ser.to_dict()
+
+      full_path = os.path.abspath(audiof)
   
-    # Add filename header
-    json_file = { str(k): v for k,v in json_file.items() }
-    json_file = {audiof: json_file}
-#    json_file[self.segment_names] = 
+      # Add filename header
+      json_file = { str(k): v for k,v in json_file.items() }
+      json_file = {audiof: json_file}
+      #    json_file[self.segment_names] = 
   
-    # Write to file
-    with open(os.path.join(path, jsonf), 'w', encoding='utf-8') as f:
-      f.write(json.dumps(json_file))
+      # Write to file
+      with open(os.path.join(path, jsonf), 'w', encoding='utf-8') as f:
+        f.write(json.dumps(json_file))
 
   def analyzebu(self):
     """Function to generate a json with features for each segment (if applicable)"""
