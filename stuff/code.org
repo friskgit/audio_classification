@@ -1304,7 +1304,6 @@ import librosa
 import soundfile as sf
 from pathlib import Path
 import os
-from IPython.display import Audio
 import subprocess
 
 class SoundFile:
@@ -1332,7 +1331,7 @@ class SoundFile:
       self.segmented = False
 
   def printPath(self):
-    if self.truncated:
+    if self.segmented:
       return self.segment_dir
     else:
       return self.path
@@ -1345,10 +1344,9 @@ class SoundFile:
       print('Segment is:', self.start[j], ':', self.end[j])
 
   def play(self):
+    start = 
     print(f"{self.name} is playing...")
-    subprocess.call(['play', self.name])
-#    Audio(data=self.soundfile, rate=self.fs)
-    
+    subprocess.call(['play', os.path.join(self.path, self.name), 'trim', '0', self.MAX_LENGTH])
   
   def segmentAudio(self):
     """Segment longer files into segments"""
