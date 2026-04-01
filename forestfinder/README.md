@@ -1,0 +1,2 @@
+# forestfinder
+This subproject uses the live-server to launch the index.html file. This html file runs a UIKit js app with a slider that makes a linear interpolation from 440Hz sine wave to white noise for the features mfcc, spectral_contrast, rms, and zero_crossing_rate. The features of the sounds in the Alberto folder are transformed into a single vector. These vectors are loaded into the UIKit js app and the vector defined by the slider is used to find the nearest neighbour. 

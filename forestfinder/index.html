@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UIKit Tutorial App</title>
+
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/uikit@3.21.16/dist/css/uikit.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.21.16/dist/js/uikit.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.21.16/dist/js/uikit-icons.min.js"></script>
+
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="hero uk-section uk-section-muted">
+      <div class="uk-container uk-container-small">
+        <div class="uk-margin-medium-top">
+          <input
+            id="waveSlider"
+            class="uk-range"
+            type="range"
+            min="0"
+            max="1"
+            step="0.005"
+            value="0"
+          />
+
+          <div class="slider-labels uk-margin-small-top">
+            <span>sine</span>
+            <span>noise</span>
+          </div>
+
+          <div id="sliderValue" class="uk-margin-small-top uk-text-meta">Value: 0.00</div>
+          <div id="selectionVectorValue" class="uk-margin-small-top uk-text-small"></div>
+          <div id="nearestMatchValue" class="uk-margin-small-top uk-text-small">
+            Closest sound: loading vectors...
+          </div>
+
+          <button id="playClosestButton" class="uk-button uk-button-primary uk-margin-small-top" type="button">
+            Play Closest
+          </button>
+          <div id="playbackStatus" class="uk-margin-small-top uk-text-meta"></div>
+        </div>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

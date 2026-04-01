@@ -1,0 +1,22 @@
+{
+	"object" : 	{
+		"username" : "Alberto Stuto",
+		"filename" : "campione 1.wav",
+		"description" : "This sound is a recording of filtered wind",
+		"labels" : 		{
+			"type" : [ "Noise", "Textural" ],
+			"mass-type" : "Composite or Stratified sound",
+			"complexity" : "Relatively simple element",
+			"onset" : "Marked onset",
+			"sustain" : "Vacillating sustain",
+			"offset" : "Laissez vibrer",
+			"pulse-typology" : "Irregular sporadic pulses",
+			"processes" : "Filtered",
+			"directionality" : "Backward push"
+		}
+,
+		"userlabels" : "*",
+		"filelength(seconds)" : 11.462199546485261
+	}
+
+}
