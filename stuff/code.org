@@ -1252,7 +1252,7 @@ with open(os.path.join(path, 'campione 9-feat.json')) as file:
 * Segmentation
 File segmentation in meaningful segments for files longer than 4s. Each segment should be no longer than 4s, and not shorter than 1s (roughly)
 
-#+begin_src python :session :results value :tangle ./../features/segment_audio.py
+#+begin_src python :session :results value :tangle ./../features/segment_audio_old.py
 from maad import sound
 from maad.rois import find_rois_cwt
 from maad.util import plot_spectrogram
@@ -1294,14 +1294,39 @@ def segmentAudio(path):
 
 #+RESULTS:
 : None
+This function creates an array of SoundFile objects with data for each file/region.
+The selector should be changed here for other kinds of audio files.
+** Read soundfiles and analyze
+#+begin_src python :session :results value :tangle ./../features/soundfile.py
+def read_sf(directory, selector='.wav'):
+  """Call 'func' for each matching file in the directory 'directory'"""
+  files = os.listdir(directory)
+  paths = []
+  soundfiles = [] # instances of the SoundFile class
+  for f in files:
+    if f.endswith(selector):
+      print(f)
+      soundfiles.append(SoundFile(directory, f))
+  for g in soundfiles:
+    if g.segmented:
+      print("number of segments:", len(g.segment_names))
+  return soundfiles
+#      paths.append(os.path.join(directory, f))
+#      print(os.path.join(directory, f))
+#      call_for_file(os.path.join(directory, f))
+#+end_src
+#+RESULTS:
+: None
 
-** SoundFile class
+** COMMENT SoundFile class
 This is a class describing a soundfile in the system. This class is used for segmentation.
+
+segment_audio: if a sound cannot be segmented use the first four seconds of it and ignore the rest.
 #+begin_src python :session :results vaule :tangle ./../features/soundfile.py
 from maad import sound
 from maad.rois import find_rois_cwt
 import librosa
-import soundfile as sf
+import soundfile as soundf
 from pathlib import Path
 import os
 import subprocess
@@ -1329,6 +1354,8 @@ class SoundFile:
       self.start.append(0)
       self.end.append(int(self.length * self.fs))
       self.segmented = False
+      # an array of the segments, or the soundfile if no segments
+      self.analysis = []
 
   def printPath(self):
     if self.segmented:
@@ -1339,77 +1366,64 @@ class SoundFile:
   def printMe(self):
     print(f"{self.name} is the audio.")
     print(f"{self.length} is the length")
-    for j in range(len(self.start)):
-      print('Segment:', self.segment_names[j])
-      print('Segment is:', self.start[j], ':', self.end[j])
+    if self.segmented:
+      print(self.start)
+      for j in range(len(self.start)):
+        print('Segment:', self.segment_names[j])
+        print('Segment is:', self.start[j], ':', self.end[j])
 
   def play(self):
-    start = 
     print(f"{self.name} is playing...")
     subprocess.call(['play', os.path.join(self.path, self.name), 'trim', '0', self.MAX_LENGTH])
   
   def segmentAudio(self):
     """Segment longer files into segments"""
-    self.truncated = 1
     regions = find_rois_cwt(self.soundfile, self.fs, flims=(self.minfrq, self.maxfrq), tlen=self.tlen, th=self.threshold, display=False, figsize=(10,6))
     self.segment_dir = os.path.join(self.path, Path(self.name).stem + '_segments')
-    if not os.path.isdir(self.segment_dir):
-      os.mkdir(self.segment_dir)
-    for i, row in regions.iterrows():
-      self.start.append(int(row['min_t'] * self.fs))
-      self.end.append(int(row['max_t'] * self.fs))
-      segment = self.soundfile[int(row['min_t'] * self.fs):int(row['max_t'] * self.fs)]
-      self.segment_names.append(self.segment_dir + '/' + Path(self.name).stem + '_segment_{}.wav'.format(i))
-      sf.write(self.segment_names[i], segment, self.fs)
+    if regions.empty:
+      print("no regions of interest")
+      return
+    else:
+      if not os.path.isdir(self.segment_dir):
+        print("create directory")
+        os.mkdir(self.segment_dir)
+      for i, row in regions.iterrows():
+        print(i)
+        self.start.append(int(row['min_t'] * self.fs))
+        self.end.append(int(row['max_t'] * self.fs))
+        segment = self.soundfile[int(row['min_t'] * self.fs):int(row['max_t'] * self.fs)]
+        self.segment_names.append(self.segment_dir + '/' + Path(self.name).stem + '_segment_{}.wav'.format(i))
+        print(self.segment_names[i])
+        soundf.write(self.segment_names[i], segment, self.fs)
 
   def analyze(self):
     """Function to generate a json with features for each segment (if applicable)"""
     if self.segmented:
       for i in range(len(self.segment_names)):
-        f = self.segment_names[i]
-        jsonf, ext = os.path.splitext(f)
+        audiof = self.segment_names[i]
+        jsonf, ext = os.path.splitext(audiof)
         file_name = os.path.basename(self.name)
         no_ext, ext = os.path.splitext(self.name)
-        no_ext = no_ext + '-feat.json'
-        jsonf = os.path.join(str(Path(os.path.dirname(f)).parents[0]), no_ext)
-        print(jsonf)
-
+        no_ext = no_ext + '-feat-{}.json'.format(i)
+        jsonf = os.path.join(str(Path(os.path.dirname(audiof)).parents[0]), no_ext)
+        ser = compute_features(audiof)
+        json_file = ser.to_dict()
+        json_file = { str(k): v for k,v in json_file.items() }
+        json_file = {audiof: json_file, "start_time": self.start[i], "end_time": self.end[i]}
+        with open(os.path.join(path, jsonf), 'w', encoding='utf-8') as f:
+          f.write(json.dumps(json_file))
     else:
       audiof = os.path.join(self.path, self.name)
       jsonf, ext = os.path.splitext(audiof)
       jsonf = jsonf + '-feat.json'
       ser = compute_features(audiof)
       json_file = ser.to_dict()
-
-      full_path = os.path.abspath(audiof)
-  
       # Add filename header
       json_file = { str(k): v for k,v in json_file.items() }
-      json_file = {audiof: json_file}
-      #    json_file[self.segment_names] = 
-  
+      json_file = {audiof: json_file, "start_time": self.start[0], "end_time": self.end[0]}
       # Write to file
       with open(os.path.join(path, jsonf), 'w', encoding='utf-8') as f:
         f.write(json.dumps(json_file))
-
-  def analyzebu(self):
-    """Function to generate a json with features for each segment (if applicable)"""
-    audiof = os.path.join(self.path, self.name)
-    jsonf, ext = os.path.splitext(audiof)
-    jsonf = jsonf + '-feat.json'
-    ser = compute_features(audiof)
-    json_file = ser.to_dict()
-
-    full_path = os.path.abspath(audiof)
-  
-    # Add filename header
-    json_file = { str(k): v for k,v in json_file.items() }
-    json_file = {audiof: json_file}
-#    json_file[self.segment_names] = 
-  
-    # Write to file
-    with open(os.path.join(path, jsonf), 'w', encoding='utf-8') as f:
-      f.write(json.dumps(json_file))
 
   def segment_file_name(self, fname):
     import re
@@ -1422,3 +1436,44 @@ class SoundFile:
 
 #+RESULTS:
 : None
+
+#+begin_src python
+"""
+Apply fade-in and fade-out to an audio array in-place.
+
+    Parameters:
+        audio (np.ndarray): Audio samples (1D or 2D for stereo)
+        sample_rate (int): Samples per second (e.g., 44100)
+        fade_in_duration (float): Fade-in time in seconds
+        fade_out_duration (float): Fade-out time in seconds
+    """
+
+    # Handle mono vs stereo
+    if audio.ndim == 1:
+        audio_view = audio
+    else:
+        audio_view = audio  # shape: (samples, channels)
+
+    total_samples = audio.shape[0]
+
+    # --- Fade In ---
+    fade_in_samples = int(sample_rate * fade_in_duration)
+    if fade_in_samples > 0:
+        fade_curve = np.linspace(0.0, 1.0, fade_in_samples)
+
+        if audio.ndim == 1:
+            audio[:fade_in_samples] *= fade_curve
+        else:
+            audio[:fade_in_samples, :] *= fade_curve[:, np.newaxis]
+
+    # --- Fade Out ---
+    fade_out_samples = int(sample_rate * fade_out_duration)
+    if fade_out_samples > 0:
+        fade_curve = np.linspace(1.0, 0.0, fade_out_samples)
+
+        if audio.ndim == 1:
+            audio[-fade_out_samples:] *= fade_curve
+        else:
+            audio[-fade_out_samples:, :] *= fade_curve[:, np.newaxis]
+
+#+end_src
