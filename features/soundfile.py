@@ -10,6 +10,7 @@ def read_sf(directory, selector='.wav'):
   for g in soundfiles:
     if g.segmented:
       print("number of segments:", len(g.segment_names))
+    g.analyze()
   return soundfiles
 #      paths.append(os.path.join(directory, f))
 #      print(os.path.join(directory, f))

@@ -1310,6 +1310,7 @@ def read_sf(directory, selector='.wav'):
   for g in soundfiles:
     if g.segmented:
       print("number of segments:", len(g.segment_names))
+    g.analyze()
   return soundfiles
 #      paths.append(os.path.join(directory, f))
 #      print(os.path.join(directory, f))
@@ -1327,6 +1328,7 @@ from maad import sound
 from maad.rois import find_rois_cwt
 import librosa
 import soundfile as soundf
+from pydub import AudioSegment
 from pathlib import Path
 import os
 import subprocess
@@ -1349,7 +1351,7 @@ class SoundFile:
     self.length = librosa.get_duration(path = os.path.join(self.path, self.name))
     if self.length > self.MAX_LENGTH:
       self.segmented = True
-      self.segmentAudio()
+      self.segment_audio()
     else:
       self.start.append(0)
       self.end.append(int(self.length * self.fs))
@@ -1357,13 +1359,13 @@ class SoundFile:
       # an array of the segments, or the soundfile if no segments
       self.analysis = []
 
-  def printPath(self):
+  def print_path(self):
     if self.segmented:
       return self.segment_dir
     else:
       return self.path
 
-  def printMe(self):
+  def print_me(self):
     print(f"{self.name} is the audio.")
     print(f"{self.length} is the length")
     if self.segmented:
@@ -1374,9 +1376,12 @@ class SoundFile:
 
   def play(self):
     print(f"{self.name} is playing...")
-    subprocess.call(['play', os.path.join(self.path, self.name), 'trim', '0', self.MAX_LENGTH])
+    print(os.path.join(self.path, self.name))
+    start_sec = str(self.start[0] / self.fs)
+    stop_sec = str(self.end[0] / self.fs)
+    subprocess.call(['play', os.path.join(self.path, self.name), "trim", start_sec, stop_sec])
   
-  def segmentAudio(self):
+  def segment_audio(self):
     """Segment longer files into segments"""
     regions = find_rois_cwt(self.soundfile, self.fs, flims=(self.minfrq, self.maxfrq), tlen=self.tlen, th=self.threshold, display=False, figsize=(10,6))
     self.segment_dir = os.path.join(self.path, Path(self.name).stem + '_segments')
@@ -1385,15 +1390,16 @@ class SoundFile:
       return
     else:
       if not os.path.isdir(self.segment_dir):
-        print("create directory")
+#        print("create directory")
         os.mkdir(self.segment_dir)
       for i, row in regions.iterrows():
-        print(i)
+#        print(i)
         self.start.append(int(row['min_t'] * self.fs))
         self.end.append(int(row['max_t'] * self.fs))
         segment = self.soundfile[int(row['min_t'] * self.fs):int(row['max_t'] * self.fs)]
         self.segment_names.append(self.segment_dir + '/' + Path(self.name).stem + '_segment_{}.wav'.format(i))
-        print(self.segment_names[i])
+        segment = self.apply_fade(segment)
+
         soundf.write(self.segment_names[i], segment, self.fs)
 
   def analyze(self):
@@ -1409,7 +1415,8 @@ class SoundFile:
         ser = compute_features(audiof)
         json_file = ser.to_dict()
         json_file = { str(k): v for k,v in json_file.items() }
-        json_file = {audiof: json_file, "start_time": self.start[i], "end_time": self.end[i]}
+        # the name of the segmented file is parent
+        json_file = {os.path.join(self.path, self.name): json_file, "start_time": self.start[i], "end_time": self.end[i]}
         with open(os.path.join(path, jsonf), 'w', encoding='utf-8') as f:
           f.write(json.dumps(json_file))
     else:
@@ -1432,48 +1439,79 @@ class SoundFile:
       return False
     else:
       return True
+
+  def apply_fade(self, audio, fade_in_duration=0.1, fade_out_duration=0.1):
+      # convert to audio indices (samples)
+    length_in = int(fade_in_duration * self.fs)
+    length_out = int(fade_out_duration * self.fs)
+    end = audio.shape[0]
+    out = end - length_out
+
+    # compute fade out curve
+    # linear fade
+    fade_curve_in = np.linspace(0.0, 1.0, length_in)
+    fade_curve_out = np.linspace(1.0, 0.0, length_out)
+
+    # apply the curve
+    audio[out:end] = audio[out:end] * fade_curve_out
+    audio[:length_in] = audio[:length_in] * fade_curve_in
+    return audio
+
 #+end_src
 
 #+RESULTS:
 : None
 
-#+begin_src python
-"""
 Apply fade-in and fade-out to an audio array in-place.
 
-    Parameters:
-        audio (np.ndarray): Audio samples (1D or 2D for stereo)
-        sample_rate (int): Samples per second (e.g., 44100)
-        fade_in_duration (float): Fade-in time in seconds
-        fade_out_duration (float): Fade-out time in seconds
-    """
-
-    # Handle mono vs stereo
+Parameters:
+ - audio (np.ndarray): Audio samples (1D or 2D for stereo)
+ - sample_rate (int): Samples per second (e.g., 44100)
+ - fade_in_duration (float): Fade-in time in seconds
+ - fade_out_duration (float): Fade-out time in seconds
+#+begin_src python
     if audio.ndim == 1:
-        audio_view = audio
+      audio_view = audio
     else:
-        audio_view = audio  # shape: (samples, channels)
-
+      audio_view = audio  # shape: (samples, channels)
     total_samples = audio.shape[0]
-
     # --- Fade In ---
-    fade_in_samples = int(sample_rate * fade_in_duration)
+    fade_in_samples = int(self.fs * fade_in_duration)
+    print("here")  
     if fade_in_samples > 0:
-        fade_curve = np.linspace(0.0, 1.0, fade_in_samples)
-
-        if audio.ndim == 1:
-            audio[:fade_in_samples] *= fade_curve
-        else:
-            audio[:fade_in_samples, :] *= fade_curve[:, np.newaxis]
-
+      fade_curve = np.linspace(0.0, 1.0, fade_in_samples)
+      
+      if audio.ndim == 1:
+        audio[:fade_in_samples] *= fade_curve
+      else:
+        audio[:fade_in_samples, :] *= fade_curve[:, np.newaxis]
+        
     # --- Fade Out ---
-    fade_out_samples = int(sample_rate * fade_out_duration)
+    fade_out_samples = int(self.fs * fade_out_duration)
     if fade_out_samples > 0:
-        fade_curve = np.linspace(1.0, 0.0, fade_out_samples)
+      fade_curve = np.linspace(1.0, 0.0, fade_out_samples)
+      
+      if audio.ndim == 1:
+        audio[-fade_out_samples:] *= fade_curve
+      else:
+        audio[-fade_out_samples:, :] *= fade_curve[:, np.newaxis]
+#+end_src
 
-        if audio.ndim == 1:
-            audio[-fade_out_samples:] *= fade_curve
-        else:
-            audio[-fade_out_samples:, :] *= fade_curve[:, np.newaxis]
+#+begin_src python
+def apply_fade(audio, samplerate, fade_in_duration=0.5, fade_out_duration=0.5):
 
+     fade_in_end = int(fade_in_duration * self.fs)
+    fade_out_start = int(len(audio) - (fade_out_duration * self.fs))
+    
+    # Linear fade-in
+    for i in range(fade_in_end):
+        fade_factor = i / fade_in_end
+        audio[i] = (audio[i] * fade_factor).astype(np.int16)
+    
+    # Linear fade-out
+    for i in range(fade_out_start, len(audio)):
+        fade_factor = (len(audio) - i) / (len(audio) - fade_out_start)
+        audio[i] = (audio[i] * fade_factor).astype(np.int16)
+        
+    return audio
 #+end_src
