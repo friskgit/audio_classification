@@ -1091,7 +1091,7 @@ def call_for_files(directory, selector='.wav'):
 ** read all values from the given file
 #+begin_src python :session :results value :tangle ./../features/read_features.py
 filename = '/Users/henrik_frisk/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/dataset/SCHAEFFER/Alberto/campione 9-feat.json'
-parent = filename[:-10] + '.wav'
+parent = filename[:-12] + '.wav'
 with open(filename) as file:
   jsonf = json.load(file)
   for name, size in feature_sizes.items():
@@ -1103,16 +1103,16 @@ with open(filename) as file:
 #+end_src
 
 #+RESULTS:
-: None
 
 ** read a particular vector - function
 In this example get all values from chroma_cens, mean
+Variable 'feature_sizes' is defined in [[*imports][imports]]
 #+begin_src python :session :results value :tangle ./../features/read_features.py
 def query_features(filename, feat='chroma_stft', moment='mean', index = -1):
   """This is a function to extract features from a json file associated with a sound file"""
   params = (feat, moment)
   value = []
-  parent = filename[:-10] + '.wav'
+  parent = filename[:-12] + '.wav'
   with open(filename) as file:
     jsonf = json.load(file)
     for name, size in feature_sizes.items():
@@ -1249,7 +1249,7 @@ with open(os.path.join(path, 'campione 9-feat.json')) as file:
 #+end_src
 #+RESULTS:
 
-* Segmentation
+* SoundFile object
 File segmentation in meaningful segments for files longer than 4s. Each segment should be no longer than 4s, and not shorter than 1s (roughly)
 
 #+begin_src python :session :results value :tangle ./../features/segment_audio_old.py
@@ -1353,6 +1353,7 @@ def read_json(directory):
   return soundfiles
 
 def update_sound_file(sfi, data):
+  """Update an instance with segment data"""
   sfi.analysis.append(data)
   sfi.start.append(data['start_time'])
   sfi.end.append(data['end_time'])
@@ -1370,10 +1371,6 @@ def is_segmented(fname):
       return 1
   else:
     return 0
-  
-  
-
-#      soundfiles.append(SoundFile(directory))
   #+end_src
 
   #+RESULTS:
@@ -1517,6 +1514,59 @@ class SoundFile:
     audio[out:end] = audio[out:end] * fade_curve_out
     audio[:length_in] = audio[:length_in] * fade_curve_in
     return audio
+
+  def query_features(self, segment=0, feat='chroma_stft', moment='mean', index = -1):
+    """This is a function to extract features from the analysis. 'moments' is a global variable defined in 'imports'"""
+    params = (feat, moment)
+    value = []
+    data = self.analysis[segment]
+    for name, size in feature_sizes.items():
+      if name is params[0]:
+        for mom in moments:
+          if mom is params[1]:
+            if index < 0:
+              for i in range(size):
+                query = "('{n}', '{m}', {i})".format(n=name, m=mom, i=(i+1))
+                value.append(data['data'][query])
+            elif index > 0:
+              query = "('{n}', '{m}', {i})".format(n=name, m=mom, i=index)
+              value.append(data['data'][query])
+    return value
+
+  def feature_vector(self, segment=0, moment='mean'):
+    """Function to stack all feature vectors into one. 'moments' is a global variable defined in 'imports'"""
+    stacked = []
+    data = self.analysis[segment]
+    for name, size in feature_sizes.items():
+      for mom in moments:
+        if mom is moment:
+          for i in range(size):
+            query = "('{n}', '{m}', {i})".format(n=name, m=mom, i=(i+1))
+            stacked.append(data['data'][query])
+    return stacked
+
+  def all_feature_vectors(self, moment='mean'):
+    """
+    Collect all feature vectors for all segments of this file and stack them.
+    'moments' is a global variable defined in 'imports'
+    """
+    all_vectors = []
+    for j, a in enumerate(self.analysis):
+      print(f'segment {j}')
+      f_vect = {}
+      data = a
+      stacked = []
+      for name, size in feature_sizes.items():
+        for mom in moments:
+          if mom is moment:
+            for i in range(size):
+              query = "('{n}', '{m}', {i})".format(n=name, m=mom, i=(i+1))
+              stacked.append(data['data'][query])
+              f_vect['name'] = data['fname']
+              f_vect['segment'] = j
+              f_vect['data'] = stacked
+      all_vectors.append(f_vect)
+    return all_vectors
 
 #+end_src
 

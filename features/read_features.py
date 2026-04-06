@@ -1,5 +1,5 @@
 filename = '/Users/henrik_frisk/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/dataset/SCHAEFFER/Alberto/campione 9-feat.json'
-parent = filename[:-10] + '.wav'
+parent = filename[:-12] + '.wav'
 with open(filename) as file:
   jsonf = json.load(file)
   for name, size in feature_sizes.items():
@@ -13,7 +13,7 @@ def query_features(filename, feat='chroma_stft', moment='mean', index = -1):
   """This is a function to extract features from a json file associated with a sound file"""
   params = (feat, moment)
   value = []
-  parent = filename[:-10] + '.wav'
+  parent = filename[:-12] + '.wav'
   with open(filename) as file:
     jsonf = json.load(file)
     for name, size in feature_sizes.items():

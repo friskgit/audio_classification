@@ -49,6 +49,7 @@ def read_json(directory):
   return soundfiles
 
 def update_sound_file(sfi, data):
+  """Update an instance with segment data"""
   sfi.analysis.append(data)
   sfi.start.append(data['start_time'])
   sfi.end.append(data['end_time'])
@@ -66,7 +67,3 @@ def is_segmented(fname):
       return 1
   else:
     return 0
-  
-  
-
-#      soundfiles.append(SoundFile(directory))
