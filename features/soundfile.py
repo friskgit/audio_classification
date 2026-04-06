@@ -14,9 +14,6 @@ def read_sf(directory, selector='.wav'):
     if g.segmented:
        print("number of segments:", len(g.segment_names))
   return soundfiles
-#      paths.append(os.path.join(directory, f))
-#      print(os.path.join(directory, f))
-#      call_for_file(os.path.join(directory, f))
 
 def read_json(directory):
   """Load all the json files in the directory 'directory' into memory"""

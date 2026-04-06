@@ -1159,7 +1159,7 @@ def stack_features(filename, moment='mean'):
 ** retrieve the cosine similarity between a master file and all files in a directory
 This function takes a vector from an analyzed file and a directory of json files to compare it with. This function can be called with ~compare_vectors(stack_features('./audiofile.wav'), './here' , moment='mean')
 #+begin_src python :session :results value :tangle ./../features/read_features.py
-def compare_vectors(master, directory, moment='mean'):
+def compare_vectors_old(master, directory, moment='mean'):
   """Take the vector of the master file and a name of a directory of json files and outputs the cosine similarity between the two. Optionally supply the moment to use."""
   from sklearn.metrics.pairwise import cosine_similarity
   results = {
@@ -1175,6 +1175,43 @@ def compare_vectors(master, directory, moment='mean'):
   results_df = pd.DataFrame(results)
   print(results_df.sort_values(by='value'))
 
+#+end_src
+
+#+RESULTS:
+: None
+
+** retrieve the cosine similarity between a SoundFile and all other SoundFiles in memory
+This function takes a vector from an analyzed file and a directory of json files to compare it with. This function can be called with ~compare_vectors(stack_features('./audiofile.wav'), './here' , moment='mean')
+#+begin_src python :session :results value :tangle ./../features/read_features.py
+def compare_vectors(soundfiles, master=0, moment='mean'):
+  """Take the soundfiles[master] vector and get the cosine similarity between it and all other soundfiles. Optionally supply the moment to use."""
+  from sklearn.metrics.pairwise import cosine_similarity
+  results = {
+    'name': ['default'],
+    'segment': ['-1'],
+    'value': [0]
+  }
+  mst_feat = soundfiles[master].feature_vector()
+#  print(soundfiles[master].name)
+  for f in soundfiles:
+    feats = f.all_feature_vectors()
+    for feature in feats:
+      cmp_feat = feature['data']
+      sim = cosine_similarity([mst_feat], [cmp_feat])
+      results['name'].append(os.path.basename(feature['name']))
+ #     print(os.path.basename(feature['name']))
+      results['segment'].append(feature['segment'])
+      results['value'].append(sim[0][0])
+  results_df = pd.DataFrame(results)
+  print(results_df.sort_values(by='value'))
+
+def play_name(name, soundfiles):
+  for sf in soundfiles:
+    if os.path.basename(sf.name) == name:
+      print(f"{os.path.basename(sf.name)} is playing...")
+      start_sec = str(sf.start[0] / sf.fs)
+      stop_sec = str(sf.end[0] / sf.fs)
+      subprocess.call(['play', sf.name, "trim", start_sec, stop_sec])
 #+end_src
 
 #+RESULTS:
@@ -1250,53 +1287,9 @@ with open(os.path.join(path, 'campione 9-feat.json')) as file:
 #+RESULTS:
 
 * SoundFile object
-File segmentation in meaningful segments for files longer than 4s. Each segment should be no longer than 4s, and not shorter than 1s (roughly)
-
-#+begin_src python :session :results value :tangle ./../features/segment_audio_old.py
-from maad import sound
-from maad.rois import find_rois_cwt
-from maad.util import plot_spectrogram
-import matplotlib.pyplot as plt
-import soundfile as sf
-import os
-from pathlib import Path
-
-def segmentAudio(path):
-# audio_dir = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/segmentation/audio'
-# audio = 'dataton2.wav'
-  audio_name = Path(audio).stem
-  segment_dir = os.path.join(audio_name + '_segments')
-  segment_exists = os.path.isdir(segment_dir)
-  segments = []
-  if not segment_exists:
-    os.mkdir(segment_dir)
-    
-    s, fs = sound.load(os.path.join(audio_dir, audio))
-    Sxx, tn, fn, ext = sound.spectrogram(s, fs, nperseg=1024, noverlap=512)
-    # uncomment if you want to plot 
-    # plot_spectrogram(Sxx, extent=ext, db_range=60, gain=20, colorbar=False, figsize=(2.5,10))
-    # plt.show()
-    # print(df_trill)
-
-    regions = find_rois_cwt(s, fs, flims=(80,10000), tlen=4, th=0.05, display=False, figsize=(10,6))
-    # print segments
-    # print(regions.head())
-
-    for i, row in regions.iterrows():
-      start = int(row['min_t'] * fs)
-      end = int(row['max_t'] * fs)
-      segment = s[start:end]
-      segments.append = os.path.join(Path(audio).stem + '_segment_{}.wav'.format(i))
-      sf.write(segments[i], segment, fs)
-
-  return segments
-#+end_src
-
-#+RESULTS:
-: None
+** Read soundfiles and analyze
 This function creates an array of SoundFile objects with data for each file/region.
 The selector should be changed here for other kinds of audio files.
-** Read soundfiles and analyze
 #+begin_src python :session :results value :tangle ./../features/soundfile.py
 def read_sf(directory, selector='.wav'):
   """Call 'func' for each matching file in the directory 'directory'"""
@@ -1314,13 +1307,11 @@ def read_sf(directory, selector='.wav'):
     if g.segmented:
        print("number of segments:", len(g.segment_names))
   return soundfiles
-#      paths.append(os.path.join(directory, f))
-#      print(os.path.join(directory, f))
-#      call_for_file(os.path.join(directory, f))
 #+end_src
 #+RESULTS:
 : None
 ** Read JSON files into memory
+Similar to the above but reads the json files and loads them into memory
 #+begin_src python :session :results value :tangle ./../features/soundfile.py
 def read_json(directory):
   """Load all the json files in the directory 'directory' into memory"""
@@ -1424,8 +1415,8 @@ class SoundFile:
       for j in range(len(self.start)):
         print('Segment:', self.segment_names[j])
         print('Segment is:', self.start[j], ':', self.end[j])
-
-  def play(self):
+    
+  def play(self, name='default'):
     print(f"{self.name} is playing...")
     print(os.path.join(self.path, self.name))
     start_sec = str(self.start[0] / self.fs)
@@ -1552,7 +1543,7 @@ class SoundFile:
     """
     all_vectors = []
     for j, a in enumerate(self.analysis):
-      print(f'segment {j}')
+#      print(f'segment {j}')
       f_vect = {}
       data = a
       stacked = []
