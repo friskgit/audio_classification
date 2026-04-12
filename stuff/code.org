@@ -936,13 +936,15 @@ from tqdm import tqdm
 import utils
 import json
 import math
+from stereo_features import extract as extract_stereo
 
 path = '/Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/dataset/SCHAEFFER/Alberto'
 
 feature_sizes = dict(chroma_stft=12, chroma_cqt=12, chroma_cens=12,
                        tonnetz=6, mfcc=20, rms=1, zcr=1,
                        spectral_centroid=1, spectral_bandwidth=1,
-                       spectral_contrast=7, spectral_rolloff=1, tempogram=13)
+                       spectral_contrast=7, spectral_rolloff=1, tempogram=13,
+                       position=16, clarity=16)
 moments = ('mean', 'std', 'skew', 'kurtosis', 'median', 'min', 'max')
 #+end_src
 
@@ -971,7 +973,7 @@ def columns():
 #+RESULTS:
 : None
 
-** def compute_features
+** COMMENT def compute_features
 This function computes the features for each sound file. It depends on [[*def columns][def columns]]. The anonymous function 'feature_stats' extract reductions of the data in various ways as a panda.Series object.
 #+begin_src python :session :results value :tangle ./../features/extract_features.py
 def compute_features(tid):
@@ -995,18 +997,23 @@ def compute_features(tid):
       
     # print(filepath)
     
-    x, sr = librosa.load(filepath, sr=None)  # kaiser_fast
+    x, sr = librosa.load(filepath, sr=None, mono=True)  # kaiser_fast
+    x_stereo, sr = librosa.load(filepath, sr=None, mono=False)  # kaiser_fast
 
-    tempogram = librosa.feature.tempogram(y=x, sr=sr)
-    f = librosa.feature.tempogram_ratio(tg=tempogram, sr=sr)
-    feature_stats('tempogram', f)
+    # pos, clar = extract_stereo(x_stereo, sr, n_mels=16)
+    # feature_stats('position', pos)
+    # feature_stats('clarity', clar)
+
+    # tempogram = librosa.feature.tempogram(y=x, sr=sr)
+    # f = librosa.feature.tempogram_ratio(tg=tempogram, sr=sr)
+    # feature_stats('tempogram', f)
     
     f = librosa.feature.zero_crossing_rate(x, frame_length=2048, hop_length=512)
     feature_stats('zcr', f)
     
-    cqt = np.abs(librosa.cqt(x, sr=sr, hop_length=512, bins_per_octave=12, n_bins=7*12, tuning=None))
-    assert cqt.shape[0] == 7 * 12
-    assert np.ceil(len(x)/512) <= cqt.shape[1] <= np.ceil(len(x)/512)+1
+    # cqt = np.abs(librosa.cqt(x, sr=sr, hop_length=512, bins_per_octave=12, n_bins=7*12, tuning=None))
+    # assert cqt.shape[0] == 7 * 12
+    # assert np.ceil(len(x)/512) <= cqt.shape[1] <= np.ceil(len(x)/512)+1
       
     f = librosa.feature.chroma_cqt(C=cqt, n_chroma=12, n_octaves=7)
     feature_stats('chroma_cqt', f)
@@ -1015,37 +1022,71 @@ def compute_features(tid):
     f = librosa.feature.tonnetz(chroma=f)
     feature_stats('tonnetz', f)
       
-    del cqt
-    stft = np.abs(librosa.stft(x, n_fft=2048, hop_length=512))
-    assert stft.shape[0] == 1 + 2048 // 2
-    assert np.ceil(len(x)/512) <= stft.shape[1] <= np.ceil(len(x)/512)+1
-    del x
+    # del cqt
+    # stft = np.abs(librosa.stft(x, n_fft=2048, hop_length=512))
+    # assert stft.shape[0] == 1 + 2048 // 2
+    # assert np.ceil(len(x)/512) <= stft.shape[1] <= np.ceil(len(x)/512)+1
+    # del x
       
-    f = librosa.feature.chroma_stft(S=stft**2, n_chroma=12)
-    feature_stats('chroma_stft', f)
+    # f = librosa.feature.chroma_stft(S=stft**2, n_chroma=12)
+    # feature_stats('chroma_stft', f)
     
-    f = librosa.feature.rms(S=stft)
-    feature_stats('rms', f)
+    # f = librosa.feature.rms(S=stft)
+    # feature_stats('rms', f)
     
-    f = librosa.feature.spectral_centroid(S=stft)
-    feature_stats('spectral_centroid', f)
-    f = librosa.feature.spectral_bandwidth(S=stft)
-    feature_stats('spectral_bandwidth', f)
-    f = librosa.feature.spectral_contrast(S=stft, n_bands=6)
-    feature_stats('spectral_contrast', f)
-    f = librosa.feature.spectral_rolloff(S=stft)
-    feature_stats('spectral_rolloff', f)
+    # f = librosa.feature.spectral_centroid(S=stft)
+    # feature_stats('spectral_centroid', f)
+    # f = librosa.feature.spectral_bandwidth(S=stft)
+    # feature_stats('spectral_bandwidth', f)
+    # f = librosa.feature.spectral_contrast(S=stft, n_bands=6)
+    # feature_stats('spectral_contrast', f)
+    # f = librosa.feature.spectral_rolloff(S=stft)
+    # feature_stats('spectral_rolloff', f)
       
-    mel = librosa.feature.melspectrogram(sr=sr, S=stft**2)
-    del stft
-    f = librosa.feature.mfcc(S=librosa.power_to_db(mel), n_mfcc=20)
-    feature_stats('mfcc', f)
+    # mel = librosa.feature.melspectrogram(sr=sr, S=stft**2)
+    # del stft
+    # f = librosa.feature.mfcc(S=librosa.power_to_db(mel), n_mfcc=20)
+    # feature_stats('mfcc', f)
 
   except Exception as e:
     print('{}: {}'.format(tid, repr(e)))
     
   return features
 #+end_src
+#+RESULTS:
+: None
+** stereo features
+#+begin_src python :session :results value :tangle ./../features/stereo_features.py
+import librosa
+import numpy as np
+import sys
+
+def extract(audio, sr, n_fft=2048, n_mels=32):
+  spect = librosa.stft(audio, n_fft=n_fft)
+  mel_L, mel_R = (
+    librosa.feature.melspectrogram(S=spect[0,:], n_mels=n_mels, sr=sr),
+    librosa.feature.melspectrogram(S=spect[1,:], n_mels=n_mels, sr=sr)
+  )
+  return position_and_clarity(np.stack([mel_L, mel_R]))
+
+
+def position_and_clarity(spect):
+  mid = spect[1,:] + spect[0,:]
+  side = spect[1,:] - spect[0,:]
+  mag_mid = np.abs(mid)
+  mag_side = np.abs(side)
+  delta_phi_ms = np.angle(mid) - np.angle(side)
+  sigma = 0.5 * np.arctan((2 * mag_side * mag_mid * np.cos(delta_phi_ms))/(mag_mid**2 - mag_side**2))
+  C = 0.5 * (np.cos(2 * delta_phi_ms) + 1)
+  return sigma, C
+
+
+# if __name__ == "__main__":
+#   audio, sr = librosa.load(sys.argv[1], mono=False, sr=48000)
+#   extract(audio, sr, n_mels=32)
+
+#+end_src
+
 #+RESULTS:
 : None
 
@@ -1298,7 +1339,6 @@ def read_sf(directory, selector='.wav'):
   soundfiles = [] # instances of the SoundFile class
   for f in files:
     if f.endswith(selector):
-#      print(f)
       soundfiles.append(SoundFile(directory, f))
   for g in soundfiles:
     g.print_me()
@@ -1367,7 +1407,7 @@ def is_segmented(fname):
   #+RESULTS:
   : None
 
-** COMMENT SoundFile class
+** SoundFile class
 This is a class describing a soundfile in the system. This class is used for segmentation.
 
 segment_audio: if a sound cannot be segmented use the first four seconds of it and ignore the rest.
@@ -1396,8 +1436,8 @@ class SoundFile:
     self.start = []
     self.end = []
     self.segmented = False
-    self.soundfile, self.fs = sound.load(os.path.join(self.path, self.name))
-    self.length = librosa.get_duration(path = os.path.join(self.path, self.name))
+    self.soundfile, self.fs = librosa.load(os.path.join(self.path, self.name), sr=None, mono=True)
+    self.length = librosa.get_duration(y = self.soundfile)
     # an array of the segments, or the soundfile if no segments
     self.analysis = []
 
@@ -1444,6 +1484,7 @@ class SoundFile:
           self.segment_names.append(self.segment_dir + '/' + Path(self.name).stem + '_segment_{}.wav'.format(i))
           # apply window to segment
           segment = self.apply_fade(segment)
+          # change this to maad or librosa
           soundf.write(self.segment_names[i], segment, self.fs)
     else:
       self.start.append(0)
