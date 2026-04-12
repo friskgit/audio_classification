@@ -11,13 +11,15 @@ from tqdm import tqdm
 import utils
 import json
 import math
+from stereo_features import extract as extract_stereo
 
 path = '/Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/dataset/SCHAEFFER/Alberto'
 
 feature_sizes = dict(chroma_stft=12, chroma_cqt=12, chroma_cens=12,
                        tonnetz=6, mfcc=20, rms=1, zcr=1,
                        spectral_centroid=1, spectral_bandwidth=1,
-                       spectral_contrast=7, spectral_rolloff=1, tempogram=13)
+                       spectral_contrast=7, spectral_rolloff=1, tempogram=13,
+                       position=16, clarity=16)
 moments = ('mean', 'std', 'skew', 'kurtosis', 'median', 'min', 'max')
 
 def columns():
