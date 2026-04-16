@@ -22,6 +22,6 @@ def position_and_clarity(spect):
   return sigma, C
 
 
-if __name__ == "__main__":
-  audio, sr = librosa.load(sys.argv[1], mono=False, sr=48000)
-  extract(audio, sr, n_mels=32)
+# if __name__ == "__main__":
+#   audio, sr = librosa.load(sys.argv[1], mono=False, sr=48000)
+#   extract(audio, sr, n_mels=32)
