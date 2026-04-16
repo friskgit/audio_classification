@@ -162,7 +162,7 @@ class SoundFile:
         no_ext, ext = os.path.splitext(self.name)
         no_ext = no_ext + '-feat-{}.json'.format(i)
         jsonf = os.path.join(str(Path(os.path.dirname(audiof)).parents[0]), no_ext)
-        ser = compute_features(audiof)
+        ser = compute_features(audiof, self.soundfile, self.fs)
         json_file = ser.to_dict()
         json_file = { str(k): v for k,v in json_file.items() }
         # the name of the segmented file is parent
@@ -174,7 +174,7 @@ class SoundFile:
       audiof = os.path.join(self.path, self.name)
       jsonf, ext = os.path.splitext(audiof)
       jsonf = jsonf + '-feat-0.json'
-      ser = compute_features(audiof)
+      ser = compute_features(audiof, self.soundfile, self.fs)
       json_file = ser.to_dict()
       # Add filename header
       json_file = { str(k): v for k,v in json_file.items() }

@@ -943,7 +943,7 @@ path = '/Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRE
 feature_sizes = dict(chroma_stft=12, chroma_cqt=12, # chroma_cens=12,
                        tonnetz=6, mfcc=20, rms=1, zcr=1,
                        spectral_centroid=1, spectral_bandwidth=1,
-                       spectral_contrast=7, spectral_rolloff=1, tempogram=13)
+                       spectral_contrast=7, spectral_rolloff=1, tempogram=13) #, position=1, clarity=1)
 moments = ('mean', 'std', 'skew', 'kurtosis', 'median', 'min', 'max')
 #+end_src
 
@@ -974,8 +974,13 @@ def columns():
 
 ** def compute_features
 This function computes the features for each sound file. It depends on [[*def columns][def columns]]. The anonymous function 'feature_stats' extract reductions of the data in various ways as a panda.Series object.
+
+The parameters are:
+- tid: the file name
+- audio: the audio vector
+- sr: the sample rate
 #+begin_src python :session :results value :tangle ./../features/extract_features_A.py
-def compute_features(tid):
+def compute_features(tid, audio, sr):
 
   features = pd.Series(index=columns(), dtype='float64', name=tid)
   
@@ -992,17 +997,17 @@ def compute_features(tid):
     features[name, 'max'] = np.max(values, axis=1)
 
   try:
-    filepath = os.path.join(path, tid)
+#    filepath = os.path.join(path, tid)
       
-    print(filepath)
+#    print(tid)
     
-    x, sr = librosa.load(filepath, sr=None, mono=True)  # kaiser_fast
-#    x_stereo, sr = librosa.load(filepath, sr=None, mono=False)  # kaiser_fast
+#    x, sr = librosa.load(filepath, sr=None, mono=True)  # kaiser_fast
+#    x_stereo, sr = librosa.load(tid, sr=None, mono=False)  # kaiser_fast
 
-    x = librosa.util.normalize(x, norm=np.inf, axis=0, threshold=None, fill=None)
-    # pos, clar = extract_stereo(x_stereo, sr, n_mels=16)
-    # feature_stats('position', pos)
-    # feature_stats('clarity', clar)
+    x = librosa.util.normalize(audio, norm=np.inf, axis=0, threshold=None, fill=None)
+#    pos, clar = extract_stereo(x_stereo, sr, n_mels=16)
+#    feature_stats('position', pos)
+#    feature_stats('clarity', clar)
 
     tempogram = librosa.feature.tempogram(y=x, sr=sr)
     f = librosa.feature.tempogram_ratio(tg=tempogram, sr=sr)
@@ -1049,8 +1054,9 @@ def compute_features(tid):
     feature_stats('mfcc', f)
 
   except Exception as e:
-    print("exception")
+#    print("exception")
     print('{}: {}'.format(tid, repr(e)))
+    features.fillna(0, axis=0, inplace=True)  
 
   return features
   
@@ -1513,7 +1519,7 @@ class SoundFile:
         no_ext, ext = os.path.splitext(self.name)
         no_ext = no_ext + '-feat-{}.json'.format(i)
         jsonf = os.path.join(str(Path(os.path.dirname(audiof)).parents[0]), no_ext)
-        ser = compute_features(audiof)
+        ser = compute_features(audiof, self.soundfile, self.fs)
         json_file = ser.to_dict()
         json_file = { str(k): v for k,v in json_file.items() }
         # the name of the segmented file is parent
@@ -1525,7 +1531,7 @@ class SoundFile:
       audiof = os.path.join(self.path, self.name)
       jsonf, ext = os.path.splitext(audiof)
       jsonf = jsonf + '-feat-0.json'
-      ser = compute_features(audiof)
+      ser = compute_features(audiof, self.soundfile, self.fs)
       json_file = ser.to_dict()
       # Add filename header
       json_file = { str(k): v for k,v in json_file.items() }
