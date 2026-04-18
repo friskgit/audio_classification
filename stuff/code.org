@@ -5,916 +5,6 @@
   - Visualization
   - Testing dataset
 - Segmentation
-* Schaeffer 
-** Sort files and copy (2d)
-
-This script relies on the dataset SCHAEFFER that should be extracted at ../../dataset/SCHAEFFER/ relative to this script. The dataset may be downloaded from https://www.kaggle.com/datasets/maurizioberta/test-schaeffer?resource=download
-
-This script parses through the SCHAEFFER dataset and looks for the keywords in the variables keyA and keyB. It goes through the following steps:
-1. clear the directories defined by dirA and dirB
-2. loop through the directories in the SCHEAFFER set
-3. loops through the json in each directory and parses it for keyA and keyB
-4. copies over the found files to the respective directory in /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/classification/training_data
-5. closes open files
-
-To find additional classifiers its easy to run the script with different key words. Beware of multi word keys which has not been tested.
-
-#+begin_src shell :results output :tangle ./import_data.sh
-  #!/bin/bash
-  dataset="../../dataset/SCHAEFFER/"
-  keyA=Impulse
-  keyB=Iteration
-  base="../classification/training_data/"
-  dirA="$base""$keyA"
-  dirB="$base""$keyB"
-
-  echo "Clearing directories...\n\n"
-  rm -rf $dirB/*.wav
-  rm -rf $dirA/*.wav
-
-  echo "Copying files from dataset...\n\n"
-  for d in "$dataset"*/; do
-      for j in "$d"*.json; do
-  	if test -f "$j"
-  	then
-  	    if [[ "$(cat "$j" | jq '.object.labels.sustain')" == "\""$keyB"\"" ]]; then
-  		if [ ! -d "$dirB" ]; then
-  		    mkdir "$dirB"
-  		fi
-  		cp "$d""`cat "$j" | jq -r '.object.filename'`" "$dirB"
-  	    fi
-  	    if [[ "$(cat "$j" | jq '.object.labels."pulse-typology"')" == "\""$keyA"\"" ]]; then
-  		if [ ! -d "$dirA" ]; then
-  		    mkdir "$dirA"
-  		fi
-  		cp "$d""`cat "$j" | jq -r '.object.filename'`" "$dirA"
-  	    fi
-  	fi
-      done
-  done
-
-  echo "Done!\n"
-#+end_src
-
-#+RESULTS:
-: Clearing directories...\n\n
-: Copying files from dataset...\n\n
-: Done!\n
-
-** Sort files and copy (add dimension)
-This script relies on the dataset SCHAEFFER that should be extracted at ../../dataset/SCHAEFFER/ relative to this script. The dataset may be downloaded from https://www.kaggle.com/datasets/maurizioberta/test-schaeffer?resource=download
-
-See instruction [[*Sort files and copy (2d)][above]].
-
-To find additional classifiers its easy to run the script with different key words. Use the parameter 'column' to specify in which column the keyword is found in.
-
-#+begin_src shell :results output :tangle ./import_data.sh
-  #!/bin/bash
-  dataset="../../dataset/SCHAEFFER/"
-  keyA="Vacillating sustain"
-  keyB="Flat sustain"
-  base="../classification/training_data/"
-  dirA="$base""$keyA"
-  dirB="$base""$keyB"
-  path=".object.labels.sustain"
-
-  echo "Clearing directories...\n\n"
-  if [ ! -d "$dirB" ]; then
-     rm -rf $dirB/*.wav
-  fi
-  if [ ! -d "$dirA" ]; then
-      rm -rf $dirA/*.wav
-  fi
-
-  echo "Copying files from dataset...\n\n"
-  for d in "$dataset"*/; do
-      for j in "$d"*.json; do
-  	if test -f "$j"
-  	then
-  	    if [[ "$(cat "$j" | jq $path)" == "\""$keyA"\"" ]]; then
-  		if [ ! -d "$dirA" ]; then
-  		    mkdir "$dirA"
-  		fi
-  		cp "$d""`cat "$j" | jq -r '.object.filename'`" "$dirA"
-  	    fi
-  	    if [[ "$(cat "$j" | jq $path)" == "\""$keyB"\"" ]]; then
-  		if [ ! -d "$dirB" ]; then
-  		    mkdir "$dirB"
-  		fi
-  		cp "$d""`cat "$j" | jq -r '.object.filename'`" "$dirB"
-  	    fi
-  	fi
-      done
-  done
-
-  echo "Done!\n"
-#+end_src
-
-** Sort files and copy full TARTYP** Map
-All children of .object.labels:
-|                                              | formed                 | impulse                  | formed                                 |
-|                                              | held sounds            |                          | iterative sounds                       |
-|----------------------------------------------+------------------------+--------------------------+----------------------------------------|
-| type in SCHAEFFER                            | sustain.'Flat sustain' | 'pulse-typology'.Impulse | sustain.Iteration                      |
-|                                              |                        |                          | 'pulse-typology'.'Regular pulse train' |
-|----------------------------------------------+------------------------+--------------------------+----------------------------------------|
-| .'mass-type'.'Harmonic sound'                | HarmSus - N            | HarmImp - N'             | HarmIter - N''                         |
-| .'mass-type'.'Sinusoidal sound'              |                        |                          |                                        |
-|----------------------------------------------+------------------------+--------------------------+----------------------------------------|
-| .'mass-type'.'Noisy sound'                   | NoiseSus - X           | NoiseImp - X'            | NoiseIter - X''                        |
-| .type.noise                                  |                        |                          |                                        |
-|----------------------------------------------+------------------------+--------------------------+----------------------------------------|
-| .'mass-type'.'Vacillating sustain'           | CompositeSus - Y       |                          |                                        |
-| .'mass-type'.'Composite or Stratified sound' | -                      | CompositeImp - Y'        | CompositeIter - Y''                    |
-|----------------------------------------------+------------------------+--------------------------+----------------------------------------|
-*** Script
-
-This script relies on the dataset SCHAEFFER that should be extracted at ../../dataset/SCHAEFFER/ relative to this script. The dataset may be downloaded from https://www.kaggle.com/datasets/maurizioberta/test-schaeffer?resource=download
-
-This script parses through the SCHAEFFER dataset and looks for the keywords in the variables keyA and keyB. It goes through the following steps:
-1. clear the directories defined by dirA and dirB
-2. loop through the directories in the SCHEAFFER set
-3. loops through the json in each directory and parses it for keyA and keyB
-4. copies over the found files to the respective directory in /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/classification/training_data
-5. closes open files
-
-To find additional classifiers its easy to run the script with different key words. Beware of multi word keys which has not been tested.
-
-#+begin_src shell :results output :tangle ./import_main.sh :noweb yes
-    #!/bin/bash
-    dataset="../../dataset/SCHAEFFER/"
-
-    harmsus=("HarmSus" "Harmonic sound" "Sinsoidal sound" "Flat sustain")
-    harmimp=("HarmImp" "Harmonic sound" "Sinsoidal sound" "Impulse")
-    harmiter=("HarmIter" "Harmonic sound" "Sinusoidal sound" "Iteration" "Regular pulse train")
-    
-    noisesus=("NoiseSus" "Noisy sound" "Noise" "Flat sustain")
-    noiseimp=("NoiseImp" "Noisy sound" "Noise" "Impulse")
-    noiseiter=("NoiseIter" "Noisy sound" "Noise" "Flat sustain"  "Regular pulse train")
-    
-    vacillatingsus=("CompositeSus" "Composite or Stratified sound" "Vacillating sustain" "Flat sustain")
-    compositeimp=("CompositeImp" "Vacillating sustain" "Composite or Stratified sound" "Impulse")
-    compositeiter=("CompositeIter" "Vacillating sustain" "Composite or Stratified sound" "Regular pulse train" "Iteration")
-    base="../classification/training_data"
-
-
-    echo $base/${harmsus[0]}
-    # echo "Clearing directories...\n"
-    # for directory in keyA keyB keyC keyD keyE keyF keyG keyH keyI
-    # do
-    #     rm -rf $d/*.wav
-    # done
-
-    echo "Copying files from dataset...\n\n"
-    for d in "$dataset"*/; do
-        for j in "$d"*.json; do
-            if test -f "$j"
-            then
-  #  	    <<harmonic_row>>
-  #   	    <<noise_row>>
-               <<vacillating_row>>
-            fi
-        done
-    done
-
-    echo "Done!\n"
-#+end_src
-
-#+RESULTS:
-: ../classification/training_data/HarmSus
-: Copying files from dataset...\n\n
-: Done!\n
-
-#+name: harmonic_row
-#+begin_src shell :results outpu :n oweb yes
-
-  ##############################
-    # Harmonic sustain
-    if [ ! -d "$base/${harmsus[0]}" ]; then
-        mkdir "$base/${harmsus[0]}"
-    fi
-    if  [[ "$(cat "$j" | jq -r '.object.labels."mass-type"')" == ${harmsus[1]} ]] &&
-    	[[ "$(cat "$j" | jq -r '.object.labels.sustain')" == ${harmsus[3]} ]]; then
-        #  		echo "$d""`cat "$j" | jq -r '.object.filename'`"
-        cp "$d""`cat "$j" | jq -r '.object.filename'`" $base/${harmsus[0]}
-    fi
-    # Harmonic sustain (Sinusoidal)
-    if  [[ "$(cat "$j" | jq -r '.object.labels."mass-type"')" == ${harmsus[2]} ]] &&
-    	[[ "$(cat "$j" | jq -r '.object.labels.sustain')" == ${harmsus[3]} ]]; then
-        # echo "$d""`cat "$j" | jq -r '.object.filename'`"
-        cp "$d""`cat "$j" | jq -r '.object.filename'`" $base/${harmsus[0]}
-    fi
-    ##############################
-    # Harmonic impulse
-    if [ ! -d "$base/${harmimp[0]}" ]; then
-        mkdir "$base/${harmimp[0]}"
-    fi
-    if  [[ "$(cat "$j" | jq -r '.object.labels."mass-type"')" == ${harmimp[1]} ]] &&
-    	[[ "$(cat "$j" | jq -r '.object.labels."pulse-typology"')" == ${harmimp[3]} ]]; then
-        #        		echo "HarmImp" "$d""`cat "$j" | jq -r '.object.filename'`"
-        cp "$d""`cat "$j" | jq -r '.object.filename'`" $base/${harmimp[0]}
-    fi
-    if  [[ "$(cat "$j" | jq -r '.object.labels."mass-type"')" == ${harmimp[2]} ]] &&
-    	[[ "$(cat "$j" | jq -r '.object.labels."pulse-typology"')" == ${harmimp[3]} ]]; then
-        # echo "HarmImp" "$d""`cat "$j" | jq -r '.object.filename'`"
-        cp "$d""`cat "$j" | jq -r '.object.filename'`" $base/${harmimp[0]}
-    fi
-    ##############################
-    # Harmonic iteration
-    if [ ! -d "$base/${harmiter[0]}" ]; then
-        mkdir "$base/${harmiter[0]}"
-    fi
-    if  [[ "$(cat "$j" | jq -r '.object.labels."mass-type"')" == ${harmiter[1]} ]] &&
-    	[[ "$(cat "$j" | jq -r '.object.labels.sustain')" == ${harmiter[3]} ]]; then
-
-        # echo "Harmiter0" "$d""`cat "$j" | jq -r '.object.filename'`"
-        cp "$d""`cat "$j" | jq -r '.object.filename'`" $base/${harmiter[0]}
-    fi
-    if  [[ "$(cat "$j" | jq -r '.object.labels."mass-type"')" == ${harmiter[2]} ]] &&
-    	[[ "$(cat "$j" | jq -r '.object.labels.sustain')" == ${harmiter[3]} ]]; then
-        # echo "HarmIter1" "$d""`cat "$j" | jq -r '.object.filename'`"
-        cp "$d""`cat "$j" | jq -r '.object.filename'`" $base/${harmiter[0]}
-    fi
-    if  [[ "$(cat "$j" | jq -r '.object.labels."mass-type"')" == ${harmiter[1]} ]] &&
-    	[[ "$(cat "$j" | jq -r '.object.labels."pulse-typology"')" == ${harmiter[4]} ]]; then
-        # echo "HarmIter2" "$d""`cat "$j" | jq -r '.object.filename'`"
-        cp "$d""`cat "$j" | jq -r '.object.filename'`" $base/${harmiter[0]}
-    fi
-#+end_src
-
-#+name: noise_row
-#+begin_src shell :results output :noweb yes
-  ##############################
-  # Noise sustain
-  if [ ! -d "$base/${noisesus[0]}" ]; then
-      mkdir "$base/${noisesus[0]}"
-  fi
-  if  [[ "$(cat "$j" | jq -r '.object.labels."mass-type"')" == ${noisesus[1]} ]] &&
-      	[[ "$(cat "$j" | jq -r '.object.labels.sustain')" == ${noisesus[3]} ]]; then
-      # echo "Noisesus0" "$d""`cat "$j" | jq -r '.object.filename'`"
-      cp "$d""`cat "$j" | jq -r '.object.filename'`" $base/${noisesus[0]}
-  fi
-  if  [[ "$(cat "$j" | jq -r '.object.labels.type')" == *${noisesus[2]}* ]] &&
-      	[[ "$(cat "$j" | jq -r '.object.labels.sustain')" == ${noisesus[3]} ]]; then
-      # echo "Noisesus1" "$d""`cat "$j" | jq -r '.object.filename'`"
-      cp "$d""`cat "$j" | jq -r '.object.filename'`" $base/${noisesus[0]}
-  fi
-  ##############################
-  # Noise impulse
-  if [ ! -d "$base/${noiseimp[0]}" ]; then
-      mkdir "$base/${noiseimp[0]}"
-  fi
-  if  [[ "$(cat "$j" | jq -r '.object.labels."mass-type"')" == ${noiseimp[1]} ]] &&
-      	[[ "$(cat "$j" | jq -r '.object.labels."pulse-typology"')" == ${noiseimp[3]} ]]; then
-      # echo "Noiseimp0" "$d""`cat "$j" | jq -r '.object.filename'`"
-      cp "$d""`cat "$j" | jq -r '.object.filename'`" $base/${noiseimp[0]}
-  fi
-  if  [[ "$(cat "$j" | jq -r '.object.labels.type')" == *${noiseimp[2]}* ]] &&
-      	[[ "$(cat "$j" | jq -r '.object.labels."pulse-typology"')" == ${noiseimp[3]} ]]; then
-      # echo "Noiseimp1" "$d""`cat "$j" | jq -r '.object.filename'`"
-      cp "$d""`cat "$j" | jq -r '.object.filename'`" $base/${noiseimp[0]}
-  fi
-  ##############################
-  # Noise iteration
-  if [ ! -d "$base/${noiseiter[0]}" ]; then
-      mkdir "$base/${noiseiter[0]}"
-  fi
-  if  [[ "$(cat "$j" | jq -r '.object.labels."mass-type"')" == ${noiseiter[1]} ]] &&
-      	[[ "$(cat "$j" | jq -r '.object.labels.sustain')" == ${noiseiter[3]} ]]; then
-      # echo "Noiseiter0" "$d""`cat "$j" | jq -r '.object.filename'`"
-      cp "$d""`cat "$j" | jq -r '.object.filename'`" $base/${noiseiter[0]}
-  fi
-  if  [[ "$(cat "$j" | jq -r '.object.labels.type')" == *${noiseiter[2]}* ]] &&
-      	[[ "$(cat "$j" | jq -r '.object.labels.sustain')" == ${noiseiter[3]} ]]; then
-      # echo "Noiseiter1" "$d""`cat "$j" | jq -r '.object.filename'`"
-      cp "$d""`cat "$j" | jq -r '.object.filename'`" $base/${noiseiter[0]}
-  fi
-  if  [[ "$(cat "$j" | jq -r '.object.labels."mass-type"')" == ${noiseiter[1]} ]] &&
-      	[[ "$(cat "$j" | jq -r '.object.labels."pulse-typology"')" == ${noiseiter[4]} ]]; then
-      # echo "Noiseiter2" "$d""`cat "$j" | jq -r '.object.filename'`"
-      cp "$d""`cat "$j" | jq -r '.object.filename'`" $base/${noiseiter[0]}
-  fi
-#+end_src
-
-#+RESULTS:
-#+name: vacillating_row
-#+begin_src shell :noweb yes
-  ##############################
-  # Noise sustain
-  if [ ! -d "$base/${vacillatingsus[0]}" ]; then
-      mkdir "$base/${vacillatingsus[0]}"
-  fi
-  if  [[ "$(cat "$j" | jq -r '.object.labels."mass-type"')" == ${vacillatingsus[1]} ]] &&
-      	[[ "$(cat "$j" | jq -r '.object.labels.sustain')" == ${vacillatingsus[3]} ]]; then
-      # echo "Vacillatingsus0" "$d""`cat "$j" | jq -r '.object.filename'`"
-      cp "$d""`cat "$j" | jq -r '.object.filename'`" $base/${vacillatingsus[0]}
-  fi
-  if  [[ "$(cat "$j" | jq -r '.object.labels."mass-type"')" == *${vacillatingsus[1]}* ]] &&
-      	[[ "$(cat "$j" | jq -r '.object.labels.sustain')" == ${vacillatingsus[2]} ]]; then
-      # echo "Vacillatingsus1" "$d""`cat "$j" | jq -r '.object.filename'`"
-      cp "$d""`cat "$j" | jq -r '.object.filename'`" $base/${vacillatingsus[0]}
-  fi
-  ##############################
-  # Noise impulse
-  if [ ! -d "$base/${compositeimp[0]}" ]; then
-      mkdir "$base/${compositeimp[0]}"
-  fi
-  if  [[ "$(cat "$j" | jq -r '.object.labels.sustain')" == ${compositeimp[1]} ]] &&
-      	[[ "$(cat "$j" | jq -r '.object.labels."pulse-typology"')" == ${compositeimp[3]} ]]; then
-      # echo "Compositeimp0" "$d""`cat "$j" | jq -r '.object.filename'`"
-      cp "$d""`cat "$j" | jq -r '.object.filename'`" $base/${compositeimp[0]}
-  fi
-  if  [[ "$(cat "$j" | jq -r '.object.labels."mass-type"')" == *${compositeimp[2]}* ]] &&
-      	[[ "$(cat "$j" | jq -r '.object.labels."pulse-typology"')" == ${compositeimp[3]} ]]; then
-      # echo "Compositeimp1" "$d""`cat "$j" | jq -r '.object.filename'`"
-      cp "$d""`cat "$j" | jq -r '.object.filename'`" $base/${compositeimp[0]}
-  fi
-  ##############################
-  # Noise iteration
-  if [ ! -d "$base/${compositeiter[0]}" ]; then
-      mkdir "$base/${compositeiter[0]}"
-  fi
-  if  [[ "$(cat "$j" | jq -r '.object.labels.sustain')" == ${compositeiter[1]} ]] &&
-      	[[ "$(cat "$j" | jq -r '.object.labels.sustain')" == ${compositeiter[4]} ]]; then
-      # echo "Compositeiter0" "$d""`cat "$j" | jq -r '.object.filename'`"
-      cp "$d""`cat "$j" | jq -r '.object.filename'`" $base/${compositeiter[0]}
-  fi
-  if  [[ "$(cat "$j" | jq -r '.object.labels."mass-type"')" == *${compositeiter[2]}* ]] &&
-      	[[ "$(cat "$j" | jq -r '.object.labels."pulse-typology"')" == ${compositeiter[3]} ]]; then
-      # echo "Compositeiter1" "$d""`cat "$j" | jq -r '.object.filename'`"
-      cp "$d""`cat "$j" | jq -r '.object.filename'`" $base/${compositeiter[0]}
-  fi
-  if  [[ "$(cat "$j" | jq -r '.object.labels.sustain')" == ${compositeiter[1]} ]] &&
-      	[[ "$(cat "$j" | jq -r '.object.labels."pulse-typology"')" == ${compositeiter[3]} ]]; then
-      # echo "Compositeiter2" "$d""`cat "$j" | jq -r '.object.filename'`"
-      cp "$d""`cat "$j" | jq -r '.object.filename'`" $base/${compositeiter[0]}
-  fi
-
-#+end_src
-
-** SCHAEFFER database labels
-#+begin_src json
-  {
-    "Type":{
-        "0":"Soundscape",
-        "1":"Drone",
-        "2":"Chop",
-        "3":"Sub",
-        "4":"Glitch",
-        "5":"Impact",
-        "6":"Stab (attacco risonanza)",
-        "7":"Synthesis",
-        "8":"Vocal",
-        "9":"Scratch",
-        "10":"Crackle",
-        "11":"Noise",
-        "12":"Textural",
-        "13":"Instrumental",
-        "14":"Chirp",
-        "15":"Percussive",
-        "16":"Honk",
-        "17":"Choral"
-    },
-    "Mass type":{
-        "0":"Sinusoidal sound",
-        "1":"Harmonic sound",
-        "2":"Inharmonic sound",
-        "3":"Cluster sound",
-        "4":"Breathlike sound",
-        "5":"Noisy sound",
-        "6":"Composite or Stratified sound"
-    },
-    "Complexity":{
-        "0":"Very simple element",
-        "1":"Relatively simple element",
-        "2":"Moderately complex element",
-        "3":"Relatively complex element",
-        "4":"Very complex element",
-        "5":"Simple emergence from complex details"
-    },
-    "Onset":{
-        "0":"Sharp onset",
-        "1":"Marked onset",
-        "2":"Flat onset",
-        "3":"Swelled onset",
-        "4":"Fade in"
-    },
-    "Sustain":{
-        "0":"Flat sustain",
-        "1":"Vacillating sustain",
-        "2":"Ostinato",
-        "3":"Decaying sustain",
-        "4":"Uplifting sustain",
-        "5":"Iteration",
-        "6":"Accumulation"
-    },
-    "Offset":{
-        "0":"Sharp ending",
-        "1":"Marked ending",
-        "2":"Flat ending",
-        "3":"Soft ending",
-        "4":"Laissez vibrer",
-        "5":"Interrupted resonance",
-        "6":"Fade out"
-    },
-    "Pulse typology":{
-        "0":"Impulse",
-        "1":"Regular pulse train",
-        "2":"Irregular pulse train",
-        "3":"No pulse"
-    },
-    "Processes":{
-        "0":"Chorus",
-        "1":"Tremolo",
-        "2":"Distortion",
-        "3":"Fuzzy",
-        "4":"Granular",
-        "5":"Loop",
-        "6":"Bit reduction",
-        "7":"Reverb",
-        "8":"Filtered",
-        "9":"Resonators",
-        "10":"Flanger",
-        "11":"Pitch-shift",
-        "12":"Stretched",
-        "13":"Delay",
-        "14":"Eco",
-        "15":"Vibrato",
-        "16":"Filter Modulation",
-        "17":"Glissando"
-    },
-    "Directionality":{
-        "0":"Forward push",
-        "1":"Evaded forward push",
-        "2":"Suspended forward push",
-        "3":"Backward push",
-        "4":"Neutral"
-    }
-}
-
-#+end_src
-
-* ML Model
-
-Extracted from here: https://medium.com/@oluyaled/audio-classification-using-deep-learning-and-tensorflow-a-step-by-step-guide-5327467ee9ab
-
-Check also here: https://kaavyamaha12.medium.com/extracting-audio-features-using-librosa-3be4ff1fe57f
-
-#+begin_src python :results output value :session python :tangle /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/model.py
-  import os
-  import librosa
-  import numpy as np
-  import tensorflow as tf
-  import sys
-  from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense
-  from tensorflow.keras.models import Model
-  from tensorflow.keras.optimizers import Adam
-  from sklearn.model_selection import train_test_split
-  from tensorflow.keras.utils import to_categorical
-  from tensorflow.image import resize
-  from tensorflow.keras.models import load_model
-
-  # Define your folder structure
-  dir = os.getcwd()
-
-  data_dir = os.path.join(dir, 'training_data')
-  # classes = ['Impulse', 'Iteration', 'Vsustain', 'Fsustain']
-  classes = ['HarmSus', 'HarmImp', 'HarmIter', 'NoiseSus', 'NoiseImp', 'NoiseIter', 'CompositeSus', 'CompositeImp', 'CompositeIter']
-  print(data_dir)
-
-  # Load and preprocess audio data
-  def load_and_preprocess_data(data_dir, classes, target_shape=(256, 256)):
-      data = []
-      labels = []
-      
-      for i, class_name in enumerate(classes):
-          class_dir = os.path.join(data_dir, class_name)
-          for filename in os.listdir(class_dir):
-              if filename.endswith('.wav'):
-                  file_path = os.path.join(class_dir, filename)
-                  audio_data, sample_rate = librosa.load(file_path, sr=None)
-                  # Perform preprocessing (e.g., convert to Mel spectrogram and resize)
-                  mel_spectrogram = librosa.feature.melspectrogram(y=audio_data, sr=sample_rate)
-                  mel_spectrogram = resize(np.expand_dims(mel_spectrogram, axis=-1), target_shape)
-                  data.append(mel_spectrogram)
-                  labels.append(i)
-                  
-      return np.array(data), np.array(labels)
-
-  # Load and preprocess audio data
-  def load_and_preprocess_data_mfcc(data_dir, classes, target_shape=(64, 64)):
-      data = []
-      labels = []
-    
-      for i, class_name in enumerate(classes):
-          class_dir = os.path.join(data_dir, class_name)
-          for filename in os.listdir(class_dir):
-              if filename.endswith('.wav'):
-                  file_path = os.path.join(class_dir, filename)
-                  audio_data, sample_rate = librosa.load(file_path, sr=None)
-                  # Perform preprocessing (e.g., convert to Mel spectrogram and resize)
-                  mfcc = librosa.feature.mfcc(y=audio_data, sr=sample_rate, n_mfcc=32)
-                  mfcc = resize(np.expand_dims(mfcc, axis=-1), target_shape)
-                  data.append(mfcc)
-                  labels.append(i)
-                  
-                  return np.array(data), np.array(labels)
-
-  # Split data into training and testing sets
-  data, labels = load_and_preprocess_data_mfcc(data_dir, classes)
-  labels = to_categorical(labels, num_classes=len(classes))  # Convert labels to one-hot encoding
-  X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.2, random_state=42)
-
-  # Create a neural network model
-  input_shape = X_train[0].shape
-  input_layer = Input(shape=input_shape)
-  x = Conv2D(32, (3, 3), activation='relu')(input_layer)
-  x = MaxPooling2D((2, 2))(x)
-  x = Conv2D(64, (3, 3), activation='relu')(x)
-  x = MaxPooling2D((2, 2))(x)
-  x = Flatten()(x)
-  x = Dense(64, activation='relu')(x)
-  output_layer = Dense(len(classes), activation='softmax')(x)
-  model = Model(input_layer, output_layer)
-#+end_src
-
-#+RESULTS:
-
-** Current directory
-#+begin_src python :results value output
-    import os
-    cwd = os.path.join(os.getcwd(), "code.org")
-    file = print(os.path.basename(cwd))
-    print(cwd)
-#+end_src
-
-#+RESULTS:
-: code.org
-: /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/stuff/code.org
-
-** Compare strings
-#+begin_src python :results value output
-import os
-dir = os.getcwd()
-print(dir)
-file = os.path.join(dir, '../classification/training_data/testing/N1_impulse.wav')
-print(os.path.basename(file))
-if('N0' in os.path.basename(file)):
-     print("yes")
-
-#+end_src
-
-#+RESULTS:
-: /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/stuff
-: N1_impulse.wav
-
-** Stuff
-#+begin_src python :results value output
-  import os
-  import glob
-  directory = "/Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/training_data"
-  extension = "*.wav"
-
-  for audio_file in glob.glob(os.path.join(directory, extension)):
-          print(f"Found audio file {audio_file}")      
-#+end_src
-
-#+RESULTS:
-: Found audio file /Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/training_data/pluck.wav
-: Found audio file /Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/training_data/imp_005.wav
-: Found audio file /Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/training_data/rhythm.wav
-: Found audio file /Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/training_data/tone.wav
-: Found audio file /Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/training_data/fsustain-1.wav
-: Found audio file /Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/training_data/iter_009.wav
-: Found audio file /Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/training_data/noise.wav
-*** Resize
-#+begin_src python :session :results value
-import numpy as np
-import tensorflow as tf
-
-# Original tensor S
-S = np.array([[1, 2], [3, 4]])  # Shape: (2, 2)
-
-# Expanding dimensions
-S_expanded = np.expand_dims(S, axis=0)  # Shape: (2, 2, 1)
-
-# Define target_shape (e.g., resizing to 4x4 with a single channel)
-target_shape = (4, 4, 1)
-
-# Resize the expanded tensor to the target shape
-S_resized = tf.image.resize(S_expanded, target_shape[:2])  # Output: Tensor with shape (4, 4, 1)
-print(S_expanded)
-# `target_shape[:2]` provides the new height and width for the resize operation
-#+end_src
-
-#+RESULTS:
-: None
-
-** Compiling the model
-#+begin_src python :session python :tangle /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/model.py
-  model.compile(optimizer=Adam(learning_rate=0.001), loss='categorical_crossentropy', metrics=['accuracy'])
-#+end_src
-
-#+RESULTS:
-
-** Training the model
-#+begin_src python :tangle /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/model.py
-  model.fit(X_train, y_train, epochs=10, batch_size=32, validation_data=(X_test, y_test))
-#+end_src
-
-** Save the model
-The 'dir' variable is a hack to handle emacs directories. This should be replaced by os.getcwd().
-#+begin_src python :tangle /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/model.py
-#  file_name = sys.argv[1]
-#  dir = os.getcwd()
-model.save(os.path.join(dir, 'audio_classification.keras'))
-#+end_src
-
-#+RESULTS:
-
-** Model evaluation
-#+begin_src python :tangle /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/eval_model.py
-  test_accuracy=model.evaluate(X_test,y_test,verbose=0)
-  print(test_accuracy[1])
-#+end_src
-
-** Testing the model
-This proves to be working with limited tests. Next thing to do is work out the optimal settings for analysis below. Especially the spectrogram settings and we should also test with other spectrograms than mel.
-
-#+begin_src python :results value output :tangle /Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/eval_model.py
-  test_accuracy=model.evaluate(X_test,y_test,verbose=0)
-  print(test_accuracy[1])
-
-  test_accuracy=model.evaluate(X_test,y_test,verbose=0)
-  print(test_accuracy[1])
-
-  import glob
-
-  # Load the saved model
-  dir = os.getcwd()
-  print(dir)
-  print(os.path.join(dir, 'audio_classification.keras'))
-  #model = load_model(os.path.join(dir, 'audio_classification.keras'))
-
-  # Define the target shape for input spectrograms
-  target_shape = (128, 128)
-
-  # Define your class labels
-  classes = ['HarmSus', 'HarmImp', 'HarmIter', 'NoiseSus', 'NoiseImp', 'NoiseIter', 'CompositeSus', 'CompositeImp', 'CompositeIter']
-  tartyp = ['N0', 'N1', 'N2', 'X0', 'X1', 'X2', 'Y0', 'Y1', 'Y2']
-  # Function to preprocess and classify an audio file
-  def test_audio(file_path, model):
-      # Load and preprocess the audio file
-      audio_data, sample_rate = librosa.load(file_path, sr=None)
-      audio_data = librosa.feature.melspectrogram(y=audio_data, sr=sample_rate)
-      audio_data = resize(np.expand_dims(audio_data, axis=-1), target_shape)
-      audio_data = tf.reshape(audio_data, (1,) + target_shape + (1,))
-          
-      # Make predictions
-      predictions = model.predict(audio_data)
-      
-      # Get the class probabilities
-      class_probabilities = predictions[0]
-      
-      # Get the predicted class index
-      predicted_class_index = np.argmax(class_probabilities)
-      
-      return class_probabilities, predicted_class_index
-
-  def test_audio_mfcc(file_path, model):
-    # Load and preprocess the audio file
-    audio_data, sample_rate = librosa.load(file_path, sr=None)
-    audio_data = librosa.feature.mfcc(y=audio_data, sr=sample_rate, n_mfcc=40)
-    audio_data = resize(np.expand_dims(audio_data, axis=-1), target_shape)
-    audio_data = tf.reshape(audio_data, (1,) + target_shape + (1,))
-        
-    # Make predictions
-    predictions = model.predict(audio_data)
-    
-    # Get the class probabilities
-    class_probabilities = predictions[0]
-    
-    # Get the predicted class index
-    predicted_class_index = np.argmax(class_probabilities)
-    
-    return class_probabilities, predicted_class_index
-
-  # Test an audio file
-  test_audio_dir = os.path.join(dir, 'training_data/testing/')
-
-  extension = "*.wav"
-  for test_audio_file in glob.glob(os.path.join(test_audio_dir, extension)):
-      class_probabilities, predicted_class_index = test_audio_mfcc(test_audio_file, model)
-      print(f'{os.path.basename(test_audio_file)}, , ,')
-      print(f'Class, Probability, Accuracy, Classified, Analyzed')
-      # Display results for all classes
-      for i, class_label in enumerate(classes):
-          probability = class_probabilities[i]
-          print(f'{class_label}, {probability:.4f}')
-
-      for i, c in enumerate(tartyp):
-          if c in test_audio_file:
-              match = classes[i]
-          
-      # Calculate and display the predicted class and accuracy
-      predicted_class = classes[predicted_class_index]
-  #    if('{os.path.basename(test_audio_file)}' )
-      accuracy = class_probabilities[predicted_class_index]
-      print(f', , {accuracy:.4f}, {predicted_class}, {match}')
-#+end_src
-
-** Testing librosa features
-#+name: plotme
-#+begin_src python :session :results value :noweb yes :tangle test_audio.py :var myvar=3
-  import os
-  import librosa
-  import numpy as np
-  import matplotlib.pyplot as plt
-
-  dir = '/Volumes/Freedom/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/training_data/testing/'
-  classes = ['Impulse', 'Iteration', 'Vsustain', 'Fsustain']
-  file_name = 'X1-impulse.wav'
-  afile = os.path.join(dir, file_name)
-
-  print(afile)
-  y, sr = librosa.load(afile, sr=None)
-#+end_src
-
-#+RESULTS: plotme
-
-*** melspectrogram
-#+begin_src python :noweb yes :tangle ./../features/melspec.py 
-   <<plotme>>
-   target_shape = (256, 256)
-   S = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=128, fmax=8000)
-   # S = resize(np.expand_dims(S, axis=-1), target_shape)
-   fig, ax = plt.subplots()
-   S_dB = librosa.power_to_db(S, ref=np.max)
-   img = librosa.display.specshow(S_dB, x_axis='time', y_axis='mel', sr=sr, fmax=8000, ax=ax)
-   fig.colorbar(img, ax=ax, format='%+2.0f dB')
-   ax.set(title='Mel-frequency spectrogram')
-
-   plt.show()
-#+end_src
-
-*** mfcc
-#+begin_src python :noweb yes :tangle ./../features/mfcc.py
-  <<plotme>>
-
-  mfccs = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=128)
-  S = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=128, fmax=8000)
-  fig, ax = plt.subplots(nrows=2, sharex=True)
-  img = librosa.display.specshow(librosa.power_to_db(S, ref=np.max),
-                                 x_axis='time', y_axis='mel', fmax=8000,
-                                 ax=ax[0])
-  fig.colorbar(img, ax=[ax[0]])
-  ax[0].set(title='Mel spectrogram')
-  ax[0].label_outer()
-  img = librosa.display.specshow(mfccs, x_axis='time', ax=ax[1])
-  fig.colorbar(img, ax=[ax[1]])
-  ax[1].set(title='MFCC')
-  plt.show()
-#+end_src
-
-#+RESULTS:
-
-*** mfcc with resize
-#+begin_src python :noweb yes :tangle mfcc_resize.py
-  mfccs = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=20)
-  desired_length = 100
-  mfccs_resized = librosa.util.fix_length(mfccs, size=desired_length, axis=1)
-
-  S = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=128, fmax=8000)
-  fig, ax = plt.subplots(nrows=2, sharex=True)
-  img = librosa.display.specshow(librosa.power_to_db(S, ref=np.max),
-                                  x_axis='time', y_axis='mel', fmax=8000,
-                                  ax=ax[0])
-  fig.colorbar(img, ax=[ax[0]])
-  ax[0].set(title='Mel spectrogram')
-  ax[0].label_outer()
-  img = librosa.display.specshow(mfccs, x_axis='time', ax=ax[1])
-  fig.colorbar(img, ax=[ax[1]])
-  ax[1].set(title='MFCC')
-  plt.show()
-#+end_src
-
-*** beat detections
-#+begin_src python :noweb yes :tangle ./../features/beat.py
-  <<plotme>>
-  import scipy.stats
-  onset_env = librosa.onset.onset_strength(y=y, sr=sr)
-  pulse = librosa.beat.plp(onset_envelope=onset_env, sr=sr)
-  # Or compute pulse with an alternate prior, like log-normal
-
-  prior = scipy.stats.lognorm(loc=np.log(120), scale=120, s=1)
-  pulse_lognorm = librosa.beat.plp(onset_envelope=onset_env, sr=sr,
-                                   prior=prior)
-  melspec = librosa.feature.melspectrogram(y=y, sr=sr)
-  fig, ax = plt.subplots(nrows=3, sharex=True)
-  librosa.display.specshow(librosa.power_to_db(melspec,
-                                               ref=np.max),
-                           x_axis='time', y_axis='mel', ax=ax[0])
-
-  ax[0].set(title='Mel spectrogram')
-  ax[0].label_outer()
-  ax[1].plot(librosa.times_like(onset_env),
-             librosa.util.normalize(onset_env),
-             label='Onset strength')
-  ax[1].plot(librosa.times_like(pulse),
-              librosa.util.normalize(pulse),
-               label='Predominant local pulse (PLP)')
-  ax[1].set(title='Uniform tempo prior [30, 300]')
-  ax[1].label_outer()
-  ax[2].plot(librosa.times_like(onset_env),
-               librosa.util.normalize(onset_env),
-               label='Onset strength')
-  ax[2].plot(librosa.times_like(pulse_lognorm),
-               librosa.util.normalize(pulse_lognorm),
-               label='Predominant local pulse (PLP)')
-  ax[2].set(title='Log-normal tempo prior, mean=120', xlim=[5, 20])
-  ax[2].legend()
-
-  plt.show()
-#+end_src
-
-*** beat detections
-#+begin_src python :noweb yes :tangle ./../features/poly_features.py
-  <<plotme>>
-  S = np.abs(librosa.stft(y))
-  p0 = librosa.feature.poly_features(S=S, order=0)
-  p1 = librosa.feature.poly_features(S=S, order=1)
-  p2 = librosa.feature.poly_features(S=S, order=2)
-
-  print(p2)
-  
-  fig, ax = plt.subplots(nrows=4, sharex=True, figsize=(8, 8))
-  times = librosa.times_like(p0)
-  ax[0].plot(times, p0[0], label='order=0', alpha=0.8)
-  ax[0].plot(times, p1[1], label='order=1', alpha=0.8)
-  ax[0].plot(times, p2[2], label='order=2', alpha=0.8)
-  ax[0].legend()
-  ax[0].label_outer()
-  ax[0].set(ylabel='Constant term ')
-  ax[1].plot(times, p1[0], label='order=1', alpha=0.8)
-  ax[1].plot(times, p2[1], label='order=2', alpha=0.8)
-  ax[1].set(ylabel='Linear term')
-  ax[1].label_outer()
-  ax[1].legend()
-  ax[2].plot(times, p2[0], label='order=2', alpha=0.8)
-  ax[2].set(ylabel='Quadratic term')
-  ax[2].legend()
-  librosa.display.specshow(librosa.amplitude_to_db(S, ref=np.max), y_axis='log', x_axis='time', ax=ax[3])
-                           
-  plt.show()
-#+end_src
-
-#+RESULTS:
-
-** Test result
-A first quick run just testing two files, one in each category, was successful:
-
->>> 
-1/1 ━━━━━━━━━━━━━━━━━━━━ 0s 30ms/step
->>> 
-Class: Impulse, Probability: 0.9994
-Class: Iteration, Probability: 0.0006
->>> 
-The audio is classified as: Impulse
-Accuracy: 0.9994
->>> 
->>> 
-1/1 ━━━━━━━━━━━━━━━━━━━━ 0s 15ms/step
->>> 
-Class: Impulse, Probability: 0.1112
-Class: Iteration, Probability: 0.8888
-The audio is classified as: Iteration
-Accuracy: 0.8888
->>> 
-
-** New expanded model
-*** Dataset
-Create a new csv with for the audio data for training the model.
-#+begin_src shell :results output :dir /Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/audio_classification/classification/training_data
-  #!/bin/bash
-  csv
-  for dir in ./*;
-  do
-      echo "$dir"
-      for file in ./$dir/*;
-      do
-  	echo $file
-      done
-  done
-  echo "Done!\n"
-#+end_src
-
-#+begin_src shell :results output :dir /Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/dataset/SCHAEFFER
-  while IFS=, read -r col1 col2
-  do
-      echo "I got:$col1|$col2"
-  done < metadata.csv
-#+end_src
-
 * Feature extraction with librosa
 Adapted from [[https://kaavyamaha12.medium.com/extracting-audio-features-using-librosa-3be4ff1fe57f][this source]]
 
@@ -922,7 +12,7 @@ Extract following features from a sound: mel, mfcc, tempograms and chromagrams
 * Extraction
 ** imports
 #+name: py_imports
-#+begin_src python :session :results value :tangle ./../features/extract_features.py
+#+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/extract_features.py
 import os
 import pandas as pd
 pd.set_option("display.max_rows", None)     # Show all rows
@@ -938,8 +28,6 @@ import json
 import math
 # from stereo_features import extract as extract_stereo
 
-path = '/Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/dataset/SCHAEFFER/Alberto'
-
 feature_sizes = dict(chroma_stft=12, chroma_cqt=12, # chroma_cens=12,
                        tonnetz=6, mfcc=20, rms=1, zcr=1,
                        spectral_centroid=1, spectral_bandwidth=1,
@@ -947,15 +35,9 @@ feature_sizes = dict(chroma_stft=12, chroma_cqt=12, # chroma_cens=12,
 moments = ('mean', 'std', 'skew', 'kurtosis', 'median', 'min', 'max')
 #+end_src
 
-#+RESULTS: py_imports
-: None
-
-#+RESULTS:
-
-
 ** def columns
 Utility function for setting up the data structures for [[*def compute_features][def compute_features]]
-#+begin_src python :session :results value :tangle ./../features/extract_features.py
+#+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/extract_features.py
 def columns():
   columns = []
   for name, size in feature_sizes.items():
@@ -979,7 +61,7 @@ The parameters are:
 - tid: the file name
 - audio: the audio vector
 - sr: the sample rate
-#+begin_src python :session :results value :tangle ./../features/extract_features_A.py
+#+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/extract_features.py
 def compute_features(tid, audio, sr):
 
   features = pd.Series(index=columns(), dtype='float64', name=tid)
@@ -1064,7 +146,7 @@ def compute_features(tid, audio, sr):
 #+RESULTS:
 : None
 ** stereo features
-#+begin_src python :session :results value :tangle ./../features/stereo_features.py
+#+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/stereo_features.py
 import librosa
 import numpy as np
 import sys
@@ -1099,7 +181,7 @@ def position_and_clarity(spect):
 : None
 
 ** call_for_file
-#+begin_src python :session :results value :tangle ./../features/extract_features.py
+#+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/extract_features.py
 def call_for_file(audiof):
   """Function to generate a json with features"""
   # compute single file
@@ -1125,7 +207,7 @@ def call_for_file(audiof):
 #+RESULTS:
 : None
 ** loop over files
-#+begin_src python :session :results value :tangle ./../features/extract_features.py
+#+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/extract_features.py
 def call_for_files(directory, selector='.wav'):
   """Call 'func' for each matching file in the directory 'directory'"""
   files = os.listdir(directory)
@@ -1139,7 +221,10 @@ def call_for_files(directory, selector='.wav'):
 #+RESULTS:
 : None
 ** read all values from the given file
-#+begin_src python :session :results value :tangle ./../features/read_features.py
+#+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/read_features.py
+import json
+from extract_features import 
+
 filename = '/Users/henrik_frisk/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/dataset/SCHAEFFER/Alberto/campione 9-feat.json'
 parent = filename[:-12] + '.wav'
 with open(filename) as file:
@@ -1157,7 +242,7 @@ with open(filename) as file:
 ** read a particular vector - function
 In this example get all values from chroma_cens, mean
 Variable 'feature_sizes' is defined in [[*imports][imports]]
-#+begin_src python :session :results value :tangle ./../features/read_features.py
+#+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/read_features.py
 def query_features(filename, feat='chroma_stft', moment='mean', index = -1):
   """This is a function to extract features from a json file associated with a sound file"""
   params = (feat, moment)
@@ -1185,7 +270,7 @@ def query_features(filename, feat='chroma_stft', moment='mean', index = -1):
 : None
 ** combine vectors - function
 In this example get all values from chroma_cens, mean
-#+begin_src python :session :results value :tangle ./../features/read_features.py
+#+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/read_features.py
 def stack_features(filename, moment='mean'):
   """This is a function to stack all feature vectors into one supplying a json file associated with a sound file"""
   params = (moment)
@@ -1208,7 +293,7 @@ def stack_features(filename, moment='mean'):
 : None
 ** retrieve the cosine similarity between a master file and all files in a directory
 This function takes a vector from an analyzed file and a directory of json files to compare it with. This function can be called with ~compare_vectors(stack_features('./audiofile.wav'), './here' , moment='mean')
-#+begin_src python :session :results value :tangle ./../features/read_features.py
+#+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/read_features.py
 def compare_vectors_old(master, directory, moment='mean'):
   """Take the vector of the master file and a name of a directory of json files and outputs the cosine similarity between the two. Optionally supply the moment to use."""
   from sklearn.metrics.pairwise import cosine_similarity
@@ -1232,7 +317,7 @@ def compare_vectors_old(master, directory, moment='mean'):
 
 ** retrieve the cosine similarity between a SoundFile and all other SoundFiles in memory
 This function takes a vector from an analyzed file and a directory of json files to compare it with. This function can be called with ~compare_vectors(stack_features('./audiofile.wav'), './here' , moment='mean')
-#+begin_src python :session :results value :tangle ./../features/read_features.py
+#+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/read_features.py
 def compare_vectors(soundfiles, master=0, moment='mean'):
   """Take the soundfiles[master] vector and get the cosine similarity between it and all other soundfiles. Optionally supply the moment to use."""
   from sklearn.metrics.pairwise import cosine_similarity
@@ -1268,7 +353,7 @@ def play_name(name, soundfiles):
 : None
 
 ** retrieve the cosine similarity
-#+begin_src python :session :results value :tangle ./../features/read_features.py
+#+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/read_features.py
 from sklearn.metrics.pairwise import cosine_similarity
 a = query_features(filename='Berta_Trupia-006-feat.json')
 b = query_features(filename='Berta_Trupia-007-feat.json')
@@ -1284,7 +369,7 @@ print(sim2)
 : None
 
 ** read specific vectors
-#+begin_src python :session :results value :tangle ./../features/read_features.py
+#+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/read_features.py
 with open(os.path.join(path, 'campione 9-feat.json')) as file:
   jsonf = json.load(file)
   print(jsonf['/Users/henrik_frisk/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/dataset/SCHAEFFER/Alberto/campione 9.wav']["('tempogram', 'mean', 2)"])
@@ -1296,7 +381,7 @@ with open(os.path.join(path, 'campione 9-feat.json')) as file:
 : None
 
 ** stuff
-#+begin_src python :session :results value :tangle ./../features/extract_features_stuff.py
+#+begin_src python :session :results value :tangle ./extract_features_stuff.py
   tracks = pd.read_csv('/Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/dataset/SCHAEFFER/metadata.csv')
   features = pd.DataFrame(index=tracks.index, columns=columns(), dtype=np.float32)
 
@@ -1340,7 +425,7 @@ with open(os.path.join(path, 'campione 9-feat.json')) as file:
 ** Read soundfiles and analyze
 This function creates an array of SoundFile objects with data for each file/region.
 The selector should be changed here for other kinds of audio files.
-#+begin_src python :session :results value :tangle ./../features/soundfile.py
+#+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/soundfile.py
 def read_sf(directory, selector='.wav'):
   """Call 'func' for each matching file in the directory 'directory'"""
   files = os.listdir(directory)
@@ -1361,7 +446,7 @@ def read_sf(directory, selector='.wav'):
 : None
 ** Read JSON files into memory
 Similar to the above but reads the json files and loads them into memory
-#+begin_src python :session :results value :tangle ./../features/soundfile.py
+#+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/soundfile.py
 def read_json(directory):
   """Load all the json files in the directory 'directory' into memory"""
   files = os.listdir(directory)
@@ -1420,11 +505,11 @@ def is_segmented(fname):
 This is a class describing a soundfile in the system. This class is used for segmentation.
 
 segment_audio: if a sound cannot be segmented use the first four seconds of it and ignore the rest.
-#+begin_src python :session :results vaule :tangle ./../features/soundfile.py
+#+begin_src python :session :results vaule :tangle ./../audio_sort/audio_sort/soundfile.py
 from maad.rois import find_rois_cwt
 import librosa
+import sounddevice as sd
 import soundfile as soundf
-from pydub import AudioSegment
 from pathlib import Path
 import os
 import subprocess
@@ -1467,10 +552,9 @@ class SoundFile:
   def play(self, name='default'):
     print(f"{self.name} is playing...")
     print(os.path.join(self.path, self.name))
-    start_sec = str(self.start[0] / self.fs)
-    stop_sec = str(self.end[0] / self.fs)
-    subprocess.call(['play', os.path.join(self.path, self.name), "trim", start_sec, stop_sec])
-  
+    sd.play(self.soundfile[self.start[0], self.end[0]], self.fs)
+    sd.wait()
+
   def segment_audio(self):
     """Segment longer files into segments"""
     if self.length > self.MAX_LENGTH:
@@ -1676,4 +760,41 @@ def apply_fade(audio, samplerate, fade_in_duration=0.5, fade_out_duration=0.5):
         audio[i] = (audio[i] * fade_factor).astype(np.int16)
         
     return audio
+#+end_src
+
+* Main
+** init
+#+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/__init__.py
+
+#+end_src
+** main
+#+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/__main__.py
+import sys
+from .soundfile import SoundFile
+from .extract_features import compute_features
+from .read_features import compare_vectors
+from .stereo_features import extract
+
+def main():
+  print('in main')
+  args = sys.argv[1:]
+  print('count of args :: {}'.format(len(args)))
+  for arg in args:
+    print('passed argument :: {}'.format(arg))
+    
+if __name__ == '__main__':
+  main()
+#+end_src
+** setup
+#+begin_src python :session :results value :tangle ./../audio_sort/setup.py
+from setuptools import setup
+setup(
+    name = 'audio_sort',
+    version = '0.1.0',
+    packages = ['audio_sort'],
+    entry_points = {
+        'console_scripts': [
+            'audio_sort = audio_sort.__main__:main'
+        ]
+    })
 #+end_src
