@@ -10,6 +10,35 @@ Adapted from [[https://kaavyamaha12.medium.com/extracting-audio-features-using-l
 
 Extract following features from a sound: mel, mfcc, tempograms and chromagrams
 * Extraction
+** Analysis class
+#+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/analysis.py
+import os
+import pandas as pd
+pd.set_option("display.max_rows", None)     # Show all rows
+pd.set_option("display.max_columns", None)  # Show all columns
+from multiprocessing import Pool
+import warnings
+import numpy as np
+from scipy import stats
+import librosa
+from tqdm import tqdm
+import utils
+import json
+import math
+import sys
+
+class Analysis:
+  """A class that computes the featurees of a SoundFile instance"""
+  feature_sizes = dict(chroma_stft=12, chroma_cqt=12, # chroma_cens=12,
+                       tonnetz=6, mfcc=20, rms=1, zcr=1,
+                       spectral_centroid=1, spectral_bandwidth=1,
+                       spectral_contrast=7, spectral_rolloff=1, tempogram=13) #, position=1, clarity=1)
+  moments = ('mean', 'std', 'skew', 'kurtosis', 'median', 'min', 'max')
+
+  def __init__(self):
+    print('Loaded')
+
+#+end_src
 ** imports
 #+name: py_imports
 #+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/extract_features.py
@@ -37,19 +66,19 @@ moments = ('mean', 'std', 'skew', 'kurtosis', 'median', 'min', 'max')
 
 ** def columns
 Utility function for setting up the data structures for [[*def compute_features][def compute_features]]
-#+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/extract_features.py
-def columns():
-  columns = []
-  for name, size in feature_sizes.items():
-    for moment in moments:
-      it = ((name, moment, (i+1)) for i in range(size))
-      columns.extend(it)
-      
-  names = ('feature', 'statistics', 'number')
-  columns = pd.MultiIndex.from_tuples(columns, names=names)
-      
-  # More efficient to slice if indexes are sorted.
-  return columns.sort_values()
+#+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/analysis.py
+  def columns(self):
+    columns = []
+    for name, size in self.feature_sizes.items():
+      for moment in self.moments:
+        it = ((name, moment, (i+1)) for i in range(size))
+        columns.extend(it)
+
+    names = ('feature', 'statistics', 'number')
+    columns = pd.MultiIndex.from_tuples(columns, names=names)
+
+    # More efficient to slice if indexes are sorted.
+    return columns.sort_values()
 #+end_src
 #+RESULTS:
 : None
@@ -61,148 +90,138 @@ The parameters are:
 - tid: the file name
 - audio: the audio vector
 - sr: the sample rate
-#+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/extract_features.py
-def compute_features(tid, audio, sr):
+#+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/analysis.py
+  def compute_features(self, tid, audio, sr):
 
-  features = pd.Series(index=columns(), dtype='float64', name=tid)
-  
-  # Catch warnings as exceptions (audioread leaks file descriptors).
-  warnings.filterwarnings('error', module='librosa')
-  
-  def feature_stats(name, values):
-    features[name, 'mean'] = np.mean(values, axis=1)
-    features[name, 'std'] = np.std(values, axis=1)
-    features[name, 'skew'] = stats.skew(values, axis=1)
-    features[name, 'kurtosis'] = stats.kurtosis(values, axis=1)
-    features[name, 'median'] = np.median(values, axis=1)
-    features[name, 'min'] = np.min(values, axis=1)
-    features[name, 'max'] = np.max(values, axis=1)
+    features = pd.Series(index=self.columns(), dtype='float64', name=tid)
 
-  try:
-#    filepath = os.path.join(path, tid)
-      
-#    print(tid)
-    
-#    x, sr = librosa.load(filepath, sr=None, mono=True)  # kaiser_fast
-#    x_stereo, sr = librosa.load(tid, sr=None, mono=False)  # kaiser_fast
+    # Catch warnings as exceptions (audioread leaks file descriptors).
+    warnings.filterwarnings('error', module='librosa')
 
-    x = librosa.util.normalize(audio, norm=np.inf, axis=0, threshold=None, fill=None)
-#    pos, clar = extract_stereo(x_stereo, sr, n_mels=16)
-#    feature_stats('position', pos)
-#    feature_stats('clarity', clar)
+    def feature_stats(name, values):
+      features[name, 'mean'] = np.mean(values, axis=1)
+      features[name, 'std'] = np.std(values, axis=1)
+      features[name, 'skew'] = stats.skew(values, axis=1)
+      features[name, 'kurtosis'] = stats.kurtosis(values, axis=1)
+      features[name, 'median'] = np.median(values, axis=1)
+      features[name, 'min'] = np.min(values, axis=1)
+      features[name, 'max'] = np.max(values, axis=1)
 
-    tempogram = librosa.feature.tempogram(y=x, sr=sr)
-    f = librosa.feature.tempogram_ratio(tg=tempogram, sr=sr)
-    feature_stats('tempogram', f)
-    
-    f = librosa.feature.zero_crossing_rate(x, frame_length=2048, hop_length=512)
-    feature_stats('zcr', f)
-    
-    cqt = np.abs(librosa.cqt(x, sr=sr, hop_length=256, bins_per_octave=12, n_bins=7*12, tuning=None))
-    assert cqt.shape[0] == 7 * 12
-    assert np.ceil(len(x)/256) <= cqt.shape[1] <= np.ceil(len(x)/256)+1
-      
-    f = librosa.feature.chroma_cqt(C=cqt, n_chroma=12, n_octaves=7)
-    feature_stats('chroma_cqt', f)
-#    f = librosa.feature.chroma_cens(C=cqt, n_chroma=12, n_octaves=7)
-#    feature_stats('chroma_cens', f)
-    f = librosa.feature.tonnetz(chroma=f)
-    feature_stats('tonnetz', f)
-      
-    del cqt
-    stft = np.abs(librosa.stft(x, n_fft=2048, hop_length=512))
-    assert stft.shape[0] == 1 + 2048 // 2
-    assert np.ceil(len(x)/512) <= stft.shape[1] <= np.ceil(len(x)/512)+1
-    del x
-      
-    f = librosa.feature.chroma_stft(S=stft**2, n_chroma=12)
-    feature_stats('chroma_stft', f)
-    
-    f = librosa.feature.rms(S=stft)
-    feature_stats('rms', f)
-    
-    f = librosa.feature.spectral_centroid(S=stft)
-    feature_stats('spectral_centroid', f)
-    f = librosa.feature.spectral_bandwidth(S=stft)
-    feature_stats('spectral_bandwidth', f)
-    f = librosa.feature.spectral_contrast(S=stft, n_bands=6)
-    feature_stats('spectral_contrast', f)
-    f = librosa.feature.spectral_rolloff(S=stft)
-    feature_stats('spectral_rolloff', f)
-      
-    mel = librosa.feature.melspectrogram(sr=sr, S=stft**2)
-    del stft
-    f = librosa.feature.mfcc(S=librosa.power_to_db(mel), n_mfcc=20)
-    feature_stats('mfcc', f)
+    try:
+  #    filepath = os.path.join(path, tid)
 
-  except Exception as e:
-#    print("exception")
-    print('{}: {}'.format(tid, repr(e)))
-    features.fillna(0, axis=0, inplace=True)  
+  #    print(tid)
 
-  return features
-  
+  #    x, sr = librosa.load(filepath, sr=None, mono=True)  # kaiser_fast
+  #    x_stereo, sr = librosa.load(tid, sr=None, mono=False)  # kaiser_fast
+
+      x = librosa.util.normalize(audio, norm=np.inf, axis=0, threshold=None, fill=None)
+  #    pos, clar = extract_stereo(x_stereo, sr, n_mels=16)
+  #    feature_stats('position', pos)
+  #    feature_stats('clarity', clar)
+
+      tempogram = librosa.feature.tempogram(y=x, sr=sr)
+      f = librosa.feature.tempogram_ratio(tg=tempogram, sr=sr)
+      feature_stats('tempogram', f)
+
+      f = librosa.feature.zero_crossing_rate(x, frame_length=2048, hop_length=512)
+      feature_stats('zcr', f)
+
+      cqt = np.abs(librosa.cqt(x, sr=sr, hop_length=256, bins_per_octave=12, n_bins=7*12, tuning=None))
+      assert cqt.shape[0] == 7 * 12
+      assert np.ceil(len(x)/256) <= cqt.shape[1] <= np.ceil(len(x)/256)+1
+
+      f = librosa.feature.chroma_cqt(C=cqt, n_chroma=12, n_octaves=7)
+      feature_stats('chroma_cqt', f)
+  #    f = librosa.feature.chroma_cens(C=cqt, n_chroma=12, n_octaves=7)
+  #    feature_stats('chroma_cens', f)
+      f = librosa.feature.tonnetz(chroma=f)
+      feature_stats('tonnetz', f)
+
+      del cqt
+      stft = np.abs(librosa.stft(x, n_fft=2048, hop_length=512))
+      assert stft.shape[0] == 1 + 2048 // 2
+      assert np.ceil(len(x)/512) <= stft.shape[1] <= np.ceil(len(x)/512)+1
+      del x
+
+      f = librosa.feature.chroma_stft(S=stft**2, n_chroma=12)
+      feature_stats('chroma_stft', f)
+
+      f = librosa.feature.rms(S=stft)
+      feature_stats('rms', f)
+
+      f = librosa.feature.spectral_centroid(S=stft)
+      feature_stats('spectral_centroid', f)
+      f = librosa.feature.spectral_bandwidth(S=stft)
+      feature_stats('spectral_bandwidth', f)
+      f = librosa.feature.spectral_contrast(S=stft, n_bands=6)
+      feature_stats('spectral_contrast', f)
+      f = librosa.feature.spectral_rolloff(S=stft)
+      feature_stats('spectral_rolloff', f)
+
+      mel = librosa.feature.melspectrogram(sr=sr, S=stft**2)
+      del stft
+      f = librosa.feature.mfcc(S=librosa.power_to_db(mel), n_mfcc=20)
+      feature_stats('mfcc', f)
+
+    except Exception as e:
+  #    print("exception")
+      print('{}: {}'.format(tid, repr(e)))
+      features.fillna(0, axis=0, inplace=True)  
+
+    return features
+
 #+end_src
 #+RESULTS:
 : None
 ** stereo features
-#+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/stereo_features.py
-import librosa
-import numpy as np
-import sys
-
-def extract(audio, sr, n_fft=2048, n_mels=32):
-  spect = librosa.stft(audio, n_fft=n_fft)
-  mel_L, mel_R = (
-    librosa.feature.melspectrogram(S=spect[0,:], n_mels=n_mels, sr=sr),
-    librosa.feature.melspectrogram(S=spect[1,:], n_mels=n_mels, sr=sr)
-  )
-  return position_and_clarity(np.stack([mel_L, mel_R]))
+#+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/analysis.py
+  def extract(self, audio, sr, n_fft=2048, n_mels=32):
+    spect = librosa.stft(audio, n_fft=n_fft)
+    mel_L, mel_R = (
+      librosa.feature.melspectrogram(S=spect[0,:], n_mels=n_mels, sr=sr),
+      librosa.feature.melspectrogram(S=spect[1,:], n_mels=n_mels, sr=sr)
+    )
+    return position_and_clarity(np.stack([mel_L, mel_R]))
 
 
-def position_and_clarity(spect):
-  mid = spect[1,:] + spect[0,:]
-  side = spect[1,:] - spect[0,:]
-  mag_mid = np.abs(mid)
-  mag_side = np.abs(side)
-  delta_phi_ms = np.angle(mid) - np.angle(side)
-  sigma = 0.5 * np.arctan((2 * mag_side * mag_mid * np.cos(delta_phi_ms))/(mag_mid**2 - mag_side**2))
-  C = 0.5 * (np.cos(2 * delta_phi_ms) + 1)
-  return sigma, C
-
-
-# if __name__ == "__main__":
-#   audio, sr = librosa.load(sys.argv[1], mono=False, sr=48000)
-#   extract(audio, sr, n_mels=32)
-
+  def position_and_clarity(self, spect):
+    mid = spect[1,:] + spect[0,:]
+    side = spect[1,:] - spect[0,:]
+    mag_mid = np.abs(mid)
+    mag_side = np.abs(side)
+    delta_phi_ms = np.angle(mid) - np.angle(side)
+    sigma = 0.5 * np.arctan((2 * mag_side * mag_mid * np.cos(delta_phi_ms))/(mag_mid**2 - mag_side**2))
+    C = 0.5 * (np.cos(2 * delta_phi_ms) + 1)
+    return sigma, C
 #+end_src
 
 #+RESULTS:
 : None
 
 ** call_for_file
-#+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/extract_features.py
-def call_for_file(audiof):
-  """Function to generate a json with features"""
-  # compute single file
-  # audiof = 'Berta_Trupia-003.wav'
-  jsonf, ext = os.path.splitext(audiof)
-  jsonf = jsonf + '-feat.json'
-  ser = compute_features(audiof)
-  if ser != 0:
-    json_file = ser.to_dict()
+#+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/analysis.py
+  def call_for_file(self, audiof):
+    """Function to generate a json with features"""
+    # compute single file
+    # audiof = 'Berta_Trupia-003.wav'
+    jsonf, ext = os.path.splitext(audiof)
+    jsonf = jsonf + '-feat.json'
+    ser = compute_features(audiof)
+    if ser != 0:
+      json_file = ser.to_dict()
 
-  full_path = os.path.abspath(audiof)
-  
-  # Add filename header
-  json_file = { str(k): v for k,v in json_file.items() }
-  json_file = {audiof: json_file}
-#  json_file['segment'] = 
-#  json_file = {'file_name': 'Yo', json_file}
-  
-  # Write to file
-  with open(os.path.join(path, jsonf), 'w', encoding='utf-8') as f:
-    f.write(json.dumps(json_file))
+    full_path = os.path.abspath(audiof)
+
+    # Add filename header
+    json_file = { str(k): v for k,v in json_file.items() }
+    json_file = {audiof: json_file}
+  #  json_file['segment'] = 
+  #  json_file = {'file_name': 'Yo', json_file}
+
+    # Write to file
+    with open(os.path.join(path, jsonf), 'w', encoding='utf-8') as f:
+      f.write(json.dumps(json_file))
 #+end_src
 #+RESULTS:
 : None
@@ -380,139 +399,22 @@ with open(os.path.join(path, 'campione 9-feat.json')) as file:
 #+RESULTS:
 : None
 
-** stuff
-#+begin_src python :session :results value :tangle ./extract_features_stuff.py
-  tracks = pd.read_csv('/Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/dataset/SCHAEFFER/metadata.csv')
-  features = pd.DataFrame(index=tracks.index, columns=columns(), dtype=np.float32)
-
-    # More than usable CPUs to be CPU bound, not I/O bound. Beware memory.
-    #nb_workers = int(1.5 * len(os.sched_getaffinity(0)))
-
-    # Longest is ~11,000 seconds. Limit processes to avoid memory errors.
-    # table = ((5000, 1), (3000, 3), (2000, 5), (1000, 10), (0, nb_workers))
-  tids = tracks.file_name
-
-  print(tids)
-    pool = multiprocessing.Pool(4)
-    it = pool.imap_unordered(compute_features, tids)
-
-    for i, row in enumerate(tqdm(it, total=len(tids))):
-        features.loc[row.name] = row
-        
-        if i % 1000 == 0:
-            save(features, 10)
-
-  import json
-  with open('/Users/henrik_frisk/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/dataset/SCHAEFFER/data.json', 'w', encoding='utf-8') as f:
-      json.dump(json_file, f, ensure_ascii=False, indent=4)
-
-  # json stuff
-  file_name = "Berta_Trupia-003.wav"
-  feature = "cnhroma_cens"
-  stat = 'kurtosis'
-  num = [1, 2, 3]
-  value = 1.208494e+00
-  chroma_cens_reg = {"name": file_name "feat": feature}
-  json.dumps(chroma_cens_reg)
-
-  files = os.listdir(path)
-  for f in files:
-      print(f)
-#+end_src
-#+RESULTS:
-
 * SoundFile object
-** Read soundfiles and analyze
-This function creates an array of SoundFile objects with data for each file/region.
-The selector should be changed here for other kinds of audio files.
-#+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/soundfile.py
-def read_sf(directory, selector='.wav'):
-  """Call 'func' for each matching file in the directory 'directory'"""
-  files = os.listdir(directory)
-  paths = []
-  soundfiles = [] # instances of the SoundFile class
-  for f in files:
-    if f.endswith(selector):
-      soundfiles.append(SoundFile(directory, f))
-  for g in soundfiles:
-    g.print_me()
-    g.segment_audio()
-    g.analyze()
-    if g.segmented:
-       print("number of segments:", len(g.segment_names))
-  return soundfiles
-#+end_src
-#+RESULTS:
-: None
-** Read JSON files into memory
-Similar to the above but reads the json files and loads them into memory
-#+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/soundfile.py
-def read_json(directory):
-  """Load all the json files in the directory 'directory' into memory"""
-  files = os.listdir(directory)
-  soundfiles = [] # instances of the SoundFile class
-  for f in files:
-    # first create SoundFile instances for each 'feat-0.json
-    if f.endswith('feat-0.json'):
-      full_path = os.path.join(directory, f)
-      with open(full_path) as json_file:
-        data = json.load(json_file)
-        audiof = data['fname']
-        directory, fname = os.path.split(audiof)
-        sf = SoundFile(directory, audiof)
-        update_sound_file(sf, data)
-        soundfiles.append(sf)
-        print(f'added {fname}')
-  for f in files:
-    # add segments to existing SoundFile instances
-    if f.endswith('.json'):
-      full_path = os.path.join(directory, f)
-      with open(full_path) as json_file:
-        data = json.load(json_file)
-        audiof = data['fname']
-        directory, fname = os.path.split(audiof)
-        if is_segmented(f) == 1:
-          for sfi in soundfiles:
-            if sfi.name == audiof:
-              update_sound_file(sfi, data)
-  return soundfiles
-
-def update_sound_file(sfi, data):
-  """Update an instance with segment data"""
-  sfi.analysis.append(data)
-  sfi.start.append(data['start_time'])
-  sfi.end.append(data['end_time'])
-  return sfi
-
-def is_segmented(fname):
-  """Returns -1 if fname is not a segment, 0 if the index is > 0 and 1 if the index is equal to 0"""
-  import re
-  tag = fname[-10:]
-  number = re.findall(r'\d+', tag)
-  if len(number) > 0:
-    if int(number[0]) == 0:
-      return 0
-    elif int(number[0]) > 0:
-      return 1
-  else:
-    return 0
-  #+end_src
-
-  #+RESULTS:
-  : None
-
 ** SoundFile class
 This is a class describing a soundfile in the system. This class is used for segmentation.
 
 segment_audio: if a sound cannot be segmented use the first four seconds of it and ignore the rest.
 #+begin_src python :session :results vaule :tangle ./../audio_sort/audio_sort/soundfile.py
 from maad.rois import find_rois_cwt
+import numpy as np
 import librosa
 import sounddevice as sd
 import soundfile as soundf
 from pathlib import Path
 import os
 import subprocess
+import json
+from .analysis import Analysis
 
 class SoundFile:
   MAX_LENGTH = 4
@@ -520,6 +422,7 @@ class SoundFile:
   maxfrq = 10000
   tlen = 3
   threshold = 0
+  analysis = 0
   
   def __init__(self, path, name):
     self.name = name
@@ -533,7 +436,11 @@ class SoundFile:
     self.length = librosa.get_duration(y = self.soundfile)
     # an array of the segments, or the soundfile if no segments
     self.analysis = []
+    self.aobject = Analysis()
 
+  def get_analysis_object(self):
+    return self.analysis
+  
   def print_path(self):
     if self.segmented:
       return self.segment_dir
@@ -603,26 +510,26 @@ class SoundFile:
         no_ext, ext = os.path.splitext(self.name)
         no_ext = no_ext + '-feat-{}.json'.format(i)
         jsonf = os.path.join(str(Path(os.path.dirname(audiof)).parents[0]), no_ext)
-        ser = compute_features(audiof, self.soundfile, self.fs)
+        ser = self.aobject.compute_features(audiof, self.soundfile, self.fs)
         json_file = ser.to_dict()
         json_file = { str(k): v for k,v in json_file.items() }
         # the name of the segmented file is parent
         json_file = {"fname": os.path.join(self.path, self.name), "start_time": self.start[0], "end_time": self.end[0], "data": json_file}
         self.analysis.append(json_file)
-        with open(os.path.join(path, jsonf), 'w', encoding='utf-8') as f:
+        with open(os.path.join(self.path, jsonf), 'w', encoding='utf-8') as f:
           f.write(json.dumps(json_file))
     else:
       audiof = os.path.join(self.path, self.name)
       jsonf, ext = os.path.splitext(audiof)
       jsonf = jsonf + '-feat-0.json'
-      ser = compute_features(audiof, self.soundfile, self.fs)
+      ser = self.aobject.compute_features(audiof, self.soundfile, self.fs)
       json_file = ser.to_dict()
       # Add filename header
       json_file = { str(k): v for k,v in json_file.items() }
       json_file = {"fname": audiof, "start_time": self.start[0], "end_time": self.end[0], "data": json_file}
       self.analysis.append(json_file)
       # Write to file
-      with open(os.path.join(path, jsonf), 'w', encoding='utf-8') as f:
+      with open(os.path.join(self.path, jsonf), 'w', encoding='utf-8') as f:
         f.write(json.dumps(json_file))
 
   def segment_file_name(self, fname):
@@ -655,9 +562,9 @@ class SoundFile:
     params = (feat, moment)
     value = []
     data = self.analysis[segment]
-    for name, size in feature_sizes.items():
+    for name, size in self.aobject.feature_sizes.items():
       if name is params[0]:
-        for mom in moments:
+        for mom in self.aobject.moments:
           if mom is params[1]:
             if index < 0:
               for i in range(size):
@@ -672,8 +579,8 @@ class SoundFile:
     """Function to stack all feature vectors into one. 'moments' is a global variable defined in 'imports'"""
     stacked = []
     data = self.analysis[segment]
-    for name, size in feature_sizes.items():
-      for mom in moments:
+    for name, size in self.aobject.feature_sizes.items():
+      for mom in self.aobject.moments:
         if mom is moment:
           for i in range(size):
             query = "('{n}', '{m}', {i})".format(n=name, m=mom, i=(i+1))
@@ -691,8 +598,8 @@ class SoundFile:
       f_vect = {}
       data = a
       stacked = []
-      for name, size in feature_sizes.items():
-        for mom in moments:
+      for name, size in self.aobject.feature_sizes.items():
+        for mom in self.aobject.moments:
           if mom is moment:
             for i in range(size):
               query = "('{n}', '{m}', {i})".format(n=name, m=mom, i=(i+1))
@@ -768,23 +675,109 @@ def apply_fade(audio, samplerate, fade_in_duration=0.5, fade_out_duration=0.5):
 
 #+end_src
 ** main
+Starting point of the app.
 #+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/__main__.py
 import sys
+import os
 from .soundfile import SoundFile
-from .extract_features import compute_features
-from .read_features import compare_vectors
-from .stereo_features import extract
+from .analysis import Analysis
 
 def main():
+  # unimportant stuff
   print('in main')
   args = sys.argv[1:]
   print('count of args :: {}'.format(len(args)))
   for arg in args:
     print('passed argument :: {}'.format(arg))
-    
+
+  # the real code
+  if len(arg) > 0 and os.path.exists(args[0]):
+    print(f"Calling sf_read() with ", args[0])
+    sf = read_sf(args[0])
+  else:
+    print("The directory is not valid.")
+  
 if __name__ == '__main__':
   main()
 #+end_src
+
+** Read soundfiles and analyze
+This function creates an array of SoundFile objects with data for each file/region.
+The selector should be changed here for other kinds of audio files.
+#+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/__main__.py
+def read_sf(directory, selector='.wav'):
+  """Call 'func' for each matching file in the directory 'directory'"""
+  files = os.listdir(directory)
+  paths = []
+  soundfiles = [] # instances of the SoundFile class
+  for f in files:
+    if f.endswith(selector):
+      soundfiles.append(SoundFile(directory, f))
+      print(f)
+  for g in soundfiles:
+    g.print_me()
+    g.segment_audio()
+    g.analyze()
+    if g.segmented:
+       print("number of segments:", len(g.segment_names))
+  return soundfiles
+#+end_src
+
+
+** Read JSON files into memory
+Similar to the above but reads the json files and loads them into memory
+#+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/__main__.py
+def read_json(directory):
+  """Load all the json files in the directory 'directory' into memory"""
+  files = os.listdir(directory)
+  soundfiles = [] # instances of the SoundFile class
+  for f in files:
+    # first create SoundFile instances for each 'feat-0.json
+    if f.endswith('feat-0.json'):
+      full_path = os.path.join(directory, f)
+      with open(full_path) as json_file:
+        data = json.load(json_file)
+        audiof = data['fname']
+        directory, fname = os.path.split(audiof)
+        sf = SoundFile(directory, audiof)
+        update_sound_file(sf, data)
+        soundfiles.append(sf)
+        print(f'added {fname}')
+  for f in files:
+    # add segments to existing SoundFile instances
+    if f.endswith('.json'):
+      full_path = os.path.join(directory, f)
+      with open(full_path) as json_file:
+        data = json.load(json_file)
+        audiof = data['fname']
+        directory, fname = os.path.split(audiof)
+        if is_segmented(f) == 1:
+          for sfi in soundfiles:
+            if sfi.name == audiof:
+              update_sound_file(sfi, data)
+  return soundfiles
+
+def update_sound_file(sfi, data):
+  """Update an instance with segment data"""
+  sfi.analysis.append(data)
+  sfi.start.append(data['start_time'])
+  sfi.end.append(data['end_time'])
+  return sfi
+
+def is_segmented(fname):
+  """Returns -1 if fname is not a segment, 0 if the index is > 0 and 1 if the index is equal to 0"""
+  import re
+  tag = fname[-10:]
+  number = re.findall(r'\d+', tag)
+  if len(number) > 0:
+    if int(number[0]) == 0:
+      return 0
+    elif int(number[0]) > 0:
+      return 1
+  else:
+    return 0
+  #+end_src
+
 ** setup
 #+begin_src python :session :results value :tangle ./../audio_sort/setup.py
 from setuptools import setup

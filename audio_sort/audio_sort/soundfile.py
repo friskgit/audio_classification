@@ -1,10 +1,12 @@
 from maad.rois import find_rois_cwt
+import numpy as np
 import librosa
 import sounddevice as sd
 import soundfile as soundf
 from pathlib import Path
 import os
 import subprocess
+import json
 from .analysis import Analysis
 
 class SoundFile:
@@ -27,7 +29,7 @@ class SoundFile:
     self.length = librosa.get_duration(y = self.soundfile)
     # an array of the segments, or the soundfile if no segments
     self.analysis = []
-    self.analysis = Analysis()
+    self.aobject = Analysis()
 
   def get_analysis_object(self):
     return self.analysis
@@ -101,26 +103,26 @@ class SoundFile:
         no_ext, ext = os.path.splitext(self.name)
         no_ext = no_ext + '-feat-{}.json'.format(i)
         jsonf = os.path.join(str(Path(os.path.dirname(audiof)).parents[0]), no_ext)
-        ser = compute_features(audiof, self.soundfile, self.fs)
+        ser = self.aobject.compute_features(audiof, self.soundfile, self.fs)
         json_file = ser.to_dict()
         json_file = { str(k): v for k,v in json_file.items() }
         # the name of the segmented file is parent
         json_file = {"fname": os.path.join(self.path, self.name), "start_time": self.start[0], "end_time": self.end[0], "data": json_file}
         self.analysis.append(json_file)
-        with open(os.path.join(path, jsonf), 'w', encoding='utf-8') as f:
+        with open(os.path.join(self.path, jsonf), 'w', encoding='utf-8') as f:
           f.write(json.dumps(json_file))
     else:
       audiof = os.path.join(self.path, self.name)
       jsonf, ext = os.path.splitext(audiof)
       jsonf = jsonf + '-feat-0.json'
-      ser = compute_features(audiof, self.soundfile, self.fs)
+      ser = self.aobject.compute_features(audiof, self.soundfile, self.fs)
       json_file = ser.to_dict()
       # Add filename header
       json_file = { str(k): v for k,v in json_file.items() }
       json_file = {"fname": audiof, "start_time": self.start[0], "end_time": self.end[0], "data": json_file}
       self.analysis.append(json_file)
       # Write to file
-      with open(os.path.join(path, jsonf), 'w', encoding='utf-8') as f:
+      with open(os.path.join(self.path, jsonf), 'w', encoding='utf-8') as f:
         f.write(json.dumps(json_file))
 
   def segment_file_name(self, fname):
@@ -153,9 +155,9 @@ class SoundFile:
     params = (feat, moment)
     value = []
     data = self.analysis[segment]
-    for name, size in feature_sizes.items():
+    for name, size in self.aobject.feature_sizes.items():
       if name is params[0]:
-        for mom in moments:
+        for mom in self.aobject.moments:
           if mom is params[1]:
             if index < 0:
               for i in range(size):
@@ -170,8 +172,8 @@ class SoundFile:
     """Function to stack all feature vectors into one. 'moments' is a global variable defined in 'imports'"""
     stacked = []
     data = self.analysis[segment]
-    for name, size in feature_sizes.items():
-      for mom in moments:
+    for name, size in self.aobject.feature_sizes.items():
+      for mom in self.aobject.moments:
         if mom is moment:
           for i in range(size):
             query = "('{n}', '{m}', {i})".format(n=name, m=mom, i=(i+1))
@@ -189,8 +191,8 @@ class SoundFile:
       f_vect = {}
       data = a
       stacked = []
-      for name, size in feature_sizes.items():
-        for mom in moments:
+      for name, size in self.aobject.feature_sizes.items():
+        for mom in self.aobject.moments:
           if mom is moment:
             for i in range(size):
               query = "('{n}', '{m}', {i})".format(n=name, m=mom, i=(i+1))

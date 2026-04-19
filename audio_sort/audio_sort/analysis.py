@@ -24,9 +24,22 @@ class Analysis:
   def __init__(self):
     print('Loaded')
 
+  def columns(self):
+    columns = []
+    for name, size in self.feature_sizes.items():
+      for moment in self.moments:
+        it = ((name, moment, (i+1)) for i in range(size))
+        columns.extend(it)
+
+    names = ('feature', 'statistics', 'number')
+    columns = pd.MultiIndex.from_tuples(columns, names=names)
+
+    # More efficient to slice if indexes are sorted.
+    return columns.sort_values()
+
   def compute_features(self, tid, audio, sr):
 
-    features = pd.Series(index=columns(), dtype='float64', name=tid)
+    features = pd.Series(index=self.columns(), dtype='float64', name=tid)
 
     # Catch warnings as exceptions (audioread leaks file descriptors).
     warnings.filterwarnings('error', module='librosa')

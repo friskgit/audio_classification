@@ -1,14 +1,23 @@
 import sys
+import os
 from .soundfile import SoundFile
 from .analysis import Analysis
 
 def main():
+  # unimportant stuff
   print('in main')
   args = sys.argv[1:]
   print('count of args :: {}'.format(len(args)))
   for arg in args:
     print('passed argument :: {}'.format(arg))
-    
+
+  # the real code
+  if len(arg) > 0 and os.path.exists(args[0]):
+    print(f"Calling sf_read() with ", args[0])
+    sf = read_sf(args[0])
+  else:
+    print("The directory is not valid.")
+  
 if __name__ == '__main__':
   main()
 
@@ -20,6 +29,7 @@ def read_sf(directory, selector='.wav'):
   for f in files:
     if f.endswith(selector):
       soundfiles.append(SoundFile(directory, f))
+      print(f)
   for g in soundfiles:
     g.print_me()
     g.segment_audio()
