@@ -1,5 +1,6 @@
 import sys
 import os
+from curses import wrapper
 from .soundfile import SoundFile
 from .analysis import Analysis
 
@@ -21,21 +22,26 @@ def main():
 if __name__ == '__main__':
   main()
 
-def read_sf(directory, selector='.wav'):
+def read_sf(directory, selector=['.wav', '.aiff', '.aifc', '.flac', '.ogg', '.mp3']):
   """Call 'func' for each matching file in the directory 'directory'"""
   files = os.listdir(directory)
   paths = []
   soundfiles = [] # instances of the SoundFile class
   for f in files:
-    if f.endswith(selector):
-      soundfiles.append(SoundFile(directory, f))
-      print(f)
+    for s in selector:
+      if f.endswith(s):
+        soundfiles.append(SoundFile(directory, f))
+        print(f)
   for g in soundfiles:
-    g.print_me()
-    g.segment_audio()
-    g.analyze()
-    if g.segmented:
-       print("number of segments:", len(g.segment_names))
+    if g.segment_json_exists():
+      print("yes " + g.name)
+    else:
+      print("no " + g.name)
+      g.print_me()
+      g.segment_audio()
+      g.analyze()
+      if g.segmented:
+        print("number of segments:", len(g.segment_names))
   return soundfiles
 
 def read_json(directory):

@@ -124,15 +124,7 @@ class SoundFile:
       # Write to file
       with open(os.path.join(self.path, jsonf), 'w', encoding='utf-8') as f:
         f.write(json.dumps(json_file))
-
-  def segment_file_name(self, fname):
-    import re
-    x = re.findall('.*_segment_[0-9]+.wav', fname)
-    if len(x) < 1:
-      return False
-    else:
-      return True
-
+      
   def apply_fade(self, audio, fade_in_duration=0.1, fade_out_duration=0.1):
       # convert to audio indices (samples)
     length_in = int(fade_in_duration * self.fs)
@@ -202,3 +194,22 @@ class SoundFile:
               f_vect['data'] = stacked
       all_vectors.append(f_vect)
     return all_vectors
+
+  def segment_file_name(self, fname):
+    import re
+    x = re.findall('.*_segment_[0-9]+.wav', fname)
+    if len(x) < 1:
+      return False
+    else:
+      return True
+
+  def segment_json_exists(self):
+    import re
+    files = os.listdir(self.path)
+    for f in files:
+      if f.endswith('.json'):
+        audiof, ext = os.path.splitext(self.name)
+        if audiof == re.sub('-feat-[0-9]+.json$', '', f):
+          return True
+        else:
+          return False

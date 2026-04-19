@@ -531,15 +531,7 @@ class SoundFile:
       # Write to file
       with open(os.path.join(self.path, jsonf), 'w', encoding='utf-8') as f:
         f.write(json.dumps(json_file))
-
-  def segment_file_name(self, fname):
-    import re
-    x = re.findall('.*_segment_[0-9]+.wav', fname)
-    if len(x) < 1:
-      return False
-    else:
-      return True
-
+      
   def apply_fade(self, audio, fade_in_duration=0.1, fade_out_duration=0.1):
       # convert to audio indices (samples)
     length_in = int(fade_in_duration * self.fs)
@@ -614,6 +606,30 @@ class SoundFile:
 
 #+RESULTS:
 : None
+Utility functions for the SoundFile class.
+#+begin_src python :session :results vaule :tangle ./../audio_sort/audio_sort/soundfile.py
+  def segment_file_name(self, fname):
+    import re
+    x = re.findall('.*_segment_[0-9]+.wav', fname)
+    if len(x) < 1:
+      return False
+    else:
+      return True
+
+  def segment_json_exists(self):
+    import re
+    files = os.listdir(self.path)
+    for f in files:
+      if f.endswith('.json'):
+        audiof, ext = os.path.splitext(self.name)
+        if audiof == re.sub('-feat-[0-9]+.json$', '', f):
+          return True
+        else:
+          return False
+#+end_src
+
+#+RESULTS:
+: None
 
 Apply fade-in and fade-out to an audio array in-place.
 
@@ -679,6 +695,7 @@ Starting point of the app.
 #+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/__main__.py
 import sys
 import os
+from curses import wrapper
 from .soundfile import SoundFile
 from .analysis import Analysis
 
@@ -705,24 +722,28 @@ if __name__ == '__main__':
 This function creates an array of SoundFile objects with data for each file/region.
 The selector should be changed here for other kinds of audio files.
 #+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/__main__.py
-def read_sf(directory, selector='.wav'):
+def read_sf(directory, selector=['.wav', '.aiff', '.aifc', '.flac', '.ogg', '.mp3']):
   """Call 'func' for each matching file in the directory 'directory'"""
   files = os.listdir(directory)
   paths = []
   soundfiles = [] # instances of the SoundFile class
   for f in files:
-    if f.endswith(selector):
-      soundfiles.append(SoundFile(directory, f))
-      print(f)
+    for s in selector:
+      if f.endswith(s):
+        soundfiles.append(SoundFile(directory, f))
+        print(f)
   for g in soundfiles:
-    g.print_me()
-    g.segment_audio()
-    g.analyze()
-    if g.segmented:
-       print("number of segments:", len(g.segment_names))
+    if g.segment_json_exists():
+      print("yes " + g.name)
+    else:
+      print("no " + g.name)
+      g.print_me()
+      g.segment_audio()
+      g.analyze()
+      if g.segmented:
+        print("number of segments:", len(g.segment_names))
   return soundfiles
 #+end_src
-
 
 ** Read JSON files into memory
 Similar to the above but reads the json files and loads them into memory
