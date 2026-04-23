@@ -1,5 +1,6 @@
 import sys
 import os
+import json
 from curses import wrapper
 from .soundfile import SoundFile
 from .analysis import Analysis
@@ -33,15 +34,14 @@ def read_sf(directory, selector=['.wav', '.aiff', '.aifc', '.flac', '.ogg', '.mp
         soundfiles.append(SoundFile(directory, f))
         print(f)
   for g in soundfiles:
-    if g.segment_json_exists():
-      print("yes " + g.name)
-    else:
-      print("no " + g.name)
-      g.print_me()
+    exists = g.segment_json_exists() 
+    if exists == 'none':
       g.segment_audio()
       g.analyze()
-      if g.segmented:
-        print("number of segments:", len(g.segment_names))
+    else:
+      jsonf = exists
+      read_json_file(g, jsonf)
+    print(g.analysis)
   return soundfiles
 
 def read_json(directory):
@@ -73,6 +73,11 @@ def read_json(directory):
             if sfi.name == audiof:
               update_sound_file(sfi, data)
   return soundfiles
+
+def read_json_file(sfi, jsonf):
+  with open(os.path.join(sfi.path, jsonf)) as json_file:
+    data = json.load(json_file)
+    sfi.analysis.append(data)
 
 def update_sound_file(sfi, data):
   """Update an instance with segment data"""

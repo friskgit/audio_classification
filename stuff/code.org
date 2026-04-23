@@ -618,14 +618,15 @@ Utility functions for the SoundFile class.
 
   def segment_json_exists(self):
     import re
+    result = 'none'
     files = os.listdir(self.path)
     for f in files:
       if f.endswith('.json'):
         audiof, ext = os.path.splitext(self.name)
-        if audiof == re.sub('-feat-[0-9]+.json$', '', f):
-          return True
-        else:
-          return False
+        if audiof == re.sub('-feat-[0-9]+.json', '', f):
+          result = f
+          break
+    return result
 #+end_src
 
 #+RESULTS:
@@ -646,7 +647,6 @@ Parameters:
     total_samples = audio.shape[0]
     # --- Fade In ---
     fade_in_samples = int(self.fs * fade_in_duration)
-    print("here")  
     if fade_in_samples > 0:
       fade_curve = np.linspace(0.0, 1.0, fade_in_samples)
       
@@ -695,6 +695,7 @@ Starting point of the app.
 #+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/__main__.py
 import sys
 import os
+import json
 from curses import wrapper
 from .soundfile import SoundFile
 from .analysis import Analysis
@@ -733,15 +734,14 @@ def read_sf(directory, selector=['.wav', '.aiff', '.aifc', '.flac', '.ogg', '.mp
         soundfiles.append(SoundFile(directory, f))
         print(f)
   for g in soundfiles:
-    if g.segment_json_exists():
-      print("yes " + g.name)
-    else:
-      print("no " + g.name)
-      g.print_me()
+    exists = g.segment_json_exists() 
+    if exists == 'none':
       g.segment_audio()
       g.analyze()
-      if g.segmented:
-        print("number of segments:", len(g.segment_names))
+    else:
+      jsonf = exists
+      read_json_file(g, jsonf)
+    print(g.analysis)
   return soundfiles
 #+end_src
 
@@ -777,6 +777,11 @@ def read_json(directory):
             if sfi.name == audiof:
               update_sound_file(sfi, data)
   return soundfiles
+
+def read_json_file(sfi, jsonf):
+  with open(os.path.join(sfi.path, jsonf)) as json_file:
+    data = json.load(json_file)
+    sfi.analysis.append(data)
 
 def update_sound_file(sfi, data):
   """Update an instance with segment data"""

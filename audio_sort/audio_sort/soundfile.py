@@ -205,11 +205,12 @@ class SoundFile:
 
   def segment_json_exists(self):
     import re
+    result = 'none'
     files = os.listdir(self.path)
     for f in files:
       if f.endswith('.json'):
         audiof, ext = os.path.splitext(self.name)
-        if audiof == re.sub('-feat-[0-9]+.json$', '', f):
-          return True
-        else:
-          return False
+        if audiof == re.sub('-feat-[0-9]+.json', '', f):
+          result = f
+          break
+    return result
