@@ -1,12 +1,12 @@
 import sys
 import os
 import json
-from curses import wrapper
 from .soundfile import SoundFile
 from .analysis import Analysis
+from .read_features import compare_vectors
 
 def main():
-  # unimportant stuff
+# unimportant stuff
   print('in main')
   args = sys.argv[1:]
   print('count of args :: {}'.format(len(args)))
@@ -19,6 +19,20 @@ def main():
     sf = read_sf(args[0])
   else:
     print("The directory is not valid.")
+
+  while True:
+    choice = input("Enter a letter: ").lower()
+    if choice == 'c':
+      number = input("Enter a number: ").lower()
+      print('Compare vector at index {}'.format(number))
+      compare_vectors(sf, choice)
+    elif choice == 'b':
+      print("Goodbye!")
+    elif choice == 'q':
+      print("Exiting program...")
+      break
+    else:
+      print("Invalid choice, try again.")
   
 if __name__ == '__main__':
   main()
@@ -41,7 +55,7 @@ def read_sf(directory, selector=['.wav', '.aiff', '.aifc', '.flac', '.ogg', '.mp
     else:
       jsonf = exists
       read_json_file(g, jsonf)
-    print(g.analysis)
+#    print(g.analysis)
   return soundfiles
 
 def read_json(directory):

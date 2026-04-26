@@ -240,7 +240,7 @@ def call_for_files(directory, selector='.wav'):
 #+RESULTS:
 : None
 ** read all values from the given file
-#+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/read_features.py
+#+begin_src python :session :results value :tangle ./read_features_old.py
 import json
 from extract_features import 
 
@@ -262,6 +262,8 @@ with open(filename) as file:
 In this example get all values from chroma_cens, mean
 Variable 'feature_sizes' is defined in [[*imports][imports]]
 #+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/read_features.py
+import json
+
 def query_features(filename, feat='chroma_stft', moment='mean', index = -1):
   """This is a function to extract features from a json file associated with a sound file"""
   params = (feat, moment)
@@ -287,55 +289,8 @@ def query_features(filename, feat='chroma_stft', moment='mean', index = -1):
 
 #+RESULTS:
 : None
-** combine vectors - function
-In this example get all values from chroma_cens, mean
-#+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/read_features.py
-def stack_features(filename, moment='mean'):
-  """This is a function to stack all feature vectors into one supplying a json file associated with a sound file"""
-  params = (moment)
-  stacked = []
-  parent = filename[:-10] + '.wav'
-  with open(filename) as file:
-    jsonf = json.load(file)
-    for name, size in feature_sizes.items():
-      for mom in moments:
-        if mom is moment:
-          for i in range(size):
-            query = "('{n}', '{m}', {i})".format(n=name, m=mom, i=(i+1))
-            stacked.append(jsonf[parent][query])
-  return stacked
-
-# print(query_features(filename='Berta_Trupia-003-feat.json', feat='tonnetz'))
-#+end_src
-
-#+RESULTS:
-: None
-** retrieve the cosine similarity between a master file and all files in a directory
-This function takes a vector from an analyzed file and a directory of json files to compare it with. This function can be called with ~compare_vectors(stack_features('./audiofile.wav'), './here' , moment='mean')
-#+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/read_features.py
-def compare_vectors_old(master, directory, moment='mean'):
-  """Take the vector of the master file and a name of a directory of json files and outputs the cosine similarity between the two. Optionally supply the moment to use."""
-  from sklearn.metrics.pairwise import cosine_similarity
-  results = {
-    'name': ['default'],
-    'value': [0]
-  }
-  for f in os.listdir(directory):
-    if f.endswith('.json'):
-      feat = stack_features(os.path.join(directory, f))
-      sim = cosine_similarity([master], [feat])
-      results['name'].append(f[:-10])
-      results['value'].append(sim[0][0])
-  results_df = pd.DataFrame(results)
-  print(results_df.sort_values(by='value'))
-
-#+end_src
-
-#+RESULTS:
-: None
-
 ** retrieve the cosine similarity between a SoundFile and all other SoundFiles in memory
-This function takes a vector from an analyzed file and a directory of json files to compare it with. This function can be called with ~compare_vectors(stack_features('./audiofile.wav'), './here' , moment='mean')
+This function takes an array of SoundFiles objects and compare it with the sound at index 'master'.
 #+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/read_features.py
 def compare_vectors(soundfiles, master=0, moment='mean'):
   """Take the soundfiles[master] vector and get the cosine similarity between it and all other soundfiles. Optionally supply the moment to use."""
@@ -359,41 +314,13 @@ def compare_vectors(soundfiles, master=0, moment='mean'):
   results_df = pd.DataFrame(results)
   print(results_df.sort_values(by='value'))
 
-def play_name(name, soundfiles):
-  for sf in soundfiles:
-    if os.path.basename(sf.name) == name:
-      print(f"{os.path.basename(sf.name)} is playing...")
-      start_sec = str(sf.start[0] / sf.fs)
-      stop_sec = str(sf.end[0] / sf.fs)
-      subprocess.call(['play', sf.name, "trim", start_sec, stop_sec])
-#+end_src
-
-#+RESULTS:
-: None
-
-** retrieve the cosine similarity
-#+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/read_features.py
-from sklearn.metrics.pairwise import cosine_similarity
-a = query_features(filename='Berta_Trupia-006-feat.json')
-b = query_features(filename='Berta_Trupia-007-feat.json')
-c = query_features(filename='Berta_Trupia-008-feat.json', feat='spectral_contrast')
-d = query_features(filename='Berta_Trupia-007-feat.json', feat='spectral_contrast')
-sim1 = cosine_similarity([a], [b])
-sim2 = cosine_similarity([c], [d])
-print(sim1)
-print(sim2)
-#+end_src
-
-#+RESULTS:
-: None
-
-** read specific vectors
-#+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/read_features.py
-with open(os.path.join(path, 'campione 9-feat.json')) as file:
-  jsonf = json.load(file)
-  print(jsonf['/Users/henrik_frisk/Dropbox/Documents/kmh/forskning/applications/KK/KKS 2022 IRESAP/dataset/SCHAEFFER/Alberto/campione 9.wav']["('tempogram', 'mean', 2)"])
-  #x = json.loads(jsonf)
-  #        y = x['Berta_Trumpia.wav']
+# def play_name(name, soundfiles):
+#   for sf in soundfiles:
+#     if os.path.basename(sf.name) == name:
+#       print(f"{os.path.basename(sf.name)} is playing...")
+#       start_sec = str(sf.start[0] / sf.fs)
+#       stop_sec = str(sf.end[0] / sf.fs)
+#       subprocess.call(['play', sf.name, "trim", start_sec, stop_sec])
 #+end_src
 
 #+RESULTS:
@@ -629,47 +556,11 @@ Utility functions for the SoundFile class.
     return result
 #+end_src
 
-#+RESULTS:
-: None
-
-Apply fade-in and fade-out to an audio array in-place.
-
-Parameters:
- - audio (np.ndarray): Audio samples (1D or 2D for stereo)
- - sample_rate (int): Samples per second (e.g., 44100)
- - fade_in_duration (float): Fade-in time in seconds
- - fade_out_duration (float): Fade-out time in seconds
-#+begin_src python
-    if audio.ndim == 1:
-      audio_view = audio
-    else:
-      audio_view = audio  # shape: (samples, channels)
-    total_samples = audio.shape[0]
-    # --- Fade In ---
-    fade_in_samples = int(self.fs * fade_in_duration)
-    if fade_in_samples > 0:
-      fade_curve = np.linspace(0.0, 1.0, fade_in_samples)
-      
-      if audio.ndim == 1:
-        audio[:fade_in_samples] *= fade_curve
-      else:
-        audio[:fade_in_samples, :] *= fade_curve[:, np.newaxis]
-        
-    # --- Fade Out ---
-    fade_out_samples = int(self.fs * fade_out_duration)
-    if fade_out_samples > 0:
-      fade_curve = np.linspace(1.0, 0.0, fade_out_samples)
-      
-      if audio.ndim == 1:
-        audio[-fade_out_samples:] *= fade_curve
-      else:
-        audio[-fade_out_samples:, :] *= fade_curve[:, np.newaxis]
-#+end_src
 
 #+begin_src python
 def apply_fade(audio, samplerate, fade_in_duration=0.5, fade_out_duration=0.5):
 
-     fade_in_end = int(fade_in_duration * self.fs)
+    fade_in_end = int(fade_in_duration * self.fs)
     fade_out_start = int(len(audio) - (fade_out_duration * self.fs))
     
     # Linear fade-in
@@ -696,12 +587,12 @@ Starting point of the app.
 import sys
 import os
 import json
-from curses import wrapper
 from .soundfile import SoundFile
 from .analysis import Analysis
+from .read_features import compare_vectors
 
 def main():
-  # unimportant stuff
+# unimportant stuff
   print('in main')
   args = sys.argv[1:]
   print('count of args :: {}'.format(len(args)))
@@ -714,6 +605,20 @@ def main():
     sf = read_sf(args[0])
   else:
     print("The directory is not valid.")
+
+  while True:
+    choice = input("Enter a letter: ").lower()
+    if choice == 'c':
+      number = input("Enter a number: ").lower()
+      print('Compare vector at index {}'.format(number))
+      compare_vectors(sf, choice)
+    elif choice == 'b':
+      print("Goodbye!")
+    elif choice == 'q':
+      print("Exiting program...")
+      break
+    else:
+      print("Invalid choice, try again.")
   
 if __name__ == '__main__':
   main()
@@ -741,7 +646,7 @@ def read_sf(directory, selector=['.wav', '.aiff', '.aifc', '.flac', '.ogg', '.mp
     else:
       jsonf = exists
       read_json_file(g, jsonf)
-    print(g.analysis)
+#    print(g.analysis)
   return soundfiles
 #+end_src
 
