@@ -22,8 +22,8 @@ class SoundFile:
     self.path = path
     self.segment_dir = ''
     self.segment_names = ['init']
-    self.start = [0]
-    self.end = [0]
+    self.start = []
+    self.end = []
     self.segmented = False
     self.soundfile, self.fs = librosa.load(os.path.join(self.path, self.name), sr=None, mono=True)
     self.length = librosa.get_duration(y = self.soundfile)
@@ -53,13 +53,17 @@ class SoundFile:
       print(f'Segment length is {self.length}.')
       print(f'Sample rate is {self.fs}.')
     
-  def play(self, name='default'):
-    print(f"{self.name} is playing...")
+  def play(self, name='default', seg=0):    
+    print(f"{self.name} is playing from {self.start} to {self.end}")
     print(os.path.join(self.path, self.name))
-    sd.play(self.soundfile[self.start[0], self.end[0]], self.fs)
+    segment = self.soundfile[self.start[seg]:self.end[seg]]
+#    sd.play(self.soundfile, self.fs)
+    sd.play(segment, self.fs)
     sd.wait()
 
-
+  def stop_playback(self):
+    sd.stop()
+    
   def segment_audio(self):
     """Segment longer files into segments"""
     if self.length > self.MAX_LENGTH:
@@ -71,8 +75,8 @@ class SoundFile:
           #        print("create directory")
           os.mkdir(self.segment_dir)
         print("no regions of interest")
-        self.start[0] = (int(0 * self.fs))
-        self.end[0] = (int(4 * self.fs)) #set length to 4s
+        self.start.append (int(0 * self.fs))
+        self.end.append(int(4 * self.fs)) #set length to 4s
         segment = self.soundfile[self.start[0]:self.end[0]]
         self.segment_names[0] = (self.segment_dir + '/' + Path(self.name).stem + '_segment_{}.wav'.format(0))
         # apply window to segment
@@ -96,7 +100,7 @@ class SoundFile:
           soundf.write(self.segment_names[i], segment, self.fs)
     else:
       self.start[0] = 0
-      self.end[0] = (int(self.length * self.fs))
+      self.ens[0] = (int(self.length * self.fs))
       self.segmented = False
       
   def analyze(self):
