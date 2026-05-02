@@ -263,6 +263,8 @@ In this example get all values from chroma_cens, mean
 Variable 'feature_sizes' is defined in [[*imports][imports]]
 #+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/read_features.py
 import json
+import os
+import pandas as pd
 
 def query_features(filename, feat='chroma_stft', moment='mean', index = -1):
   """This is a function to extract features from a json file associated with a sound file"""
@@ -298,11 +300,12 @@ def compare_vectors(soundfiles, master=0, moment='mean'):
   results = {
     'name': ['default'],
     'segment': ['-1'],
-    'value': [0]
+    'value': [0],
+    'sf_index': [0]
   }
   mst_feat = soundfiles[master].feature_vector()
 #  print(soundfiles[master].name)
-  for f in soundfiles:
+  for i,f in enumerate(soundfiles):
     feats = f.all_feature_vectors()
     for feature in feats:
       cmp_feat = feature['data']
@@ -311,8 +314,9 @@ def compare_vectors(soundfiles, master=0, moment='mean'):
  #     print(os.path.basename(feature['name']))
       results['segment'].append(feature['segment'])
       results['value'].append(sim[0][0])
+      results['sf_index'].append(i)
   results_df = pd.DataFrame(results)
-  print(results_df.sort_values(by='value'))
+  return results_df
 
 # def play_name(name, soundfiles):
 #   for sf in soundfiles:
@@ -355,9 +359,9 @@ class SoundFile:
     self.name = name
     self.path = path
     self.segment_dir = ''
-    self.segment_names = []
-    self.start = []
-    self.end = []
+    self.segment_names = ['init']
+    self.start = [0]
+    self.end = [0]
     self.segmented = False
     self.soundfile, self.fs = librosa.load(os.path.join(self.path, self.name), sr=None, mono=True)
     self.length = librosa.get_duration(y = self.soundfile)
@@ -381,14 +385,23 @@ class SoundFile:
       print(self.start)
       for j in range(len(self.start)):
         print('Segment:', self.segment_names[j])
-        print('Segment is:', self.start[j], ':', self.end[j])
+        print('Segment is: ', self.start[j], ':', self.end[j])
+    else:
+      print(f'Segment is: {self.start[0]}:{self.end[0]}')
+      print(f'Segment length is {self.length}.')
+      print(f'Sample rate is {self.fs}.')
     
-  def play(self, name='default'):
-    print(f"{self.name} is playing...")
+  def play(self, name='default'):    
+    print(f"{self.name} is playing from {self.start} to {self.end}")
     print(os.path.join(self.path, self.name))
-    sd.play(self.soundfile[self.start[0], self.end[0]], self.fs)
+#    segment = self.soundfile[self.start:self.end]
+    sd.play(self.soundfile, self.fs)
+    # sd.play(self.soundfile[self.start[0], self.end[0]], self.fs)
     sd.wait()
 
+  def stop_playback(self):
+    sd.stop()
+    
   def segment_audio(self):
     """Segment longer files into segments"""
     if self.length > self.MAX_LENGTH:
@@ -401,9 +414,9 @@ class SoundFile:
           os.mkdir(self.segment_dir)
         print("no regions of interest")
         self.start.append(int(0 * self.fs))
-        self.end.append(int(4 * self.fs))
+        self.end.append(int(4 * self.fs)) #set length to 4s
         segment = self.soundfile[self.start[0]:self.end[0]]
-        self.segment_names.append(self.segment_dir + '/' + Path(self.name).stem + '_segment_{}.wav'.format(0))
+        self.segment_names[0] = (self.segment_dir + '/' + Path(self.name).stem + '_segment_{}.wav'.format(0))
         # apply window to segment
         segment = self.apply_fade(segment)
         # change this to maad or librosa
@@ -415,8 +428,8 @@ class SoundFile:
           os.mkdir(self.segment_dir)
         for i, row in regions.iterrows():
           #        print(i)
-          self.start.append(int(row['min_t'] * self.fs))
-          self.end.append(int(row['max_t'] * self.fs))
+          self.start.append(int(0 * self.fs))
+          self.end.append(int(4 * self.fs))
           segment = self.soundfile[int(row['min_t'] * self.fs):int(row['max_t'] * self.fs)]
           self.segment_names.append(self.segment_dir + '/' + Path(self.name).stem + '_segment_{}.wav'.format(i))
           # apply window to segment
@@ -606,14 +619,45 @@ def main():
   else:
     print("The directory is not valid.")
 
+    # play loop
   while True:
     choice = input("Enter a letter: ").lower()
     if choice == 'c':
       number = input("Enter a number: ").lower()
       print('Compare vector at index {}'.format(number))
-      compare_vectors(sf, choice)
-    elif choice == 'b':
-      print("Goodbye!")
+      r = compare_vectors(sf, int(number))
+      winners = r.sort_values(by='value').tail(5)
+#      winners = r.drop(index=r.index[0], axis=0, inplace=True)
+      print(winners)
+      while True:
+        play = int(input('Play soundfile: ').lower())
+        if play == 0:
+          print(winners.iloc[4]['sf_index'])
+          afile = sf[winners.iloc[4]['sf_index']]
+          afile.play()
+        elif play == 1:
+          print(winners.iloc[3]['sf_index'])
+          afile = sf[winners.iloc[3]['sf_index']]
+          afile.play()
+        elif play == 2:
+          print(winners.iloc[2]['sf_index'])
+          afile = sf[winners.iloc[2]['sf_index']]
+          afile.play()
+        elif play == 3:
+          print(winners.iloc[1]['sf_index'])
+          afile = sf[winners.iloc[1]['sf_index']]
+          afile.play()
+        elif play == 4:
+          print(winners.iloc[0]['sf_index'])
+          afile = sf[winners.iloc[0]['sf_index']]
+          afile.play()
+  #      file1 = winners.iloc[3]['name']
+        elif play == -1:
+          break
+        else:
+          print('Try again')
+
+          # exit
     elif choice == 'q':
       print("Exiting program...")
       break
@@ -624,7 +668,7 @@ if __name__ == '__main__':
   main()
 #+end_src
 
-** Read soundfiles and analyze
+** main Read soundfiles and analyze
 This function creates an array of SoundFile objects with data for each file/region.
 The selector should be changed here for other kinds of audio files.
 #+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/__main__.py
@@ -646,17 +690,20 @@ def read_sf(directory, selector=['.wav', '.aiff', '.aifc', '.flac', '.ogg', '.mp
     else:
       jsonf = exists
       read_json_file(g, jsonf)
-#    print(g.analysis)
+  # print(g.analysis)
   return soundfiles
 #+end_src
 
-** Read JSON files into memory
+** main Read JSON files into memory
 Similar to the above but reads the json files and loads them into memory
 #+begin_src python :session :results value :tangle ./../audio_sort/audio_sort/__main__.py
-def read_json(directory):
+def read_json(directory): # UNUSED
   """Load all the json files in the directory 'directory' into memory"""
   files = os.listdir(directory)
   soundfiles = [] # instances of the SoundFile class
+  audiof = '' # full name
+  directory = '' # directory portion
+  fname = '' # audio file name
   for f in files:
     # first create SoundFile instances for each 'feat-0.json
     if f.endswith('feat-0.json'):
@@ -665,7 +712,7 @@ def read_json(directory):
         data = json.load(json_file)
         audiof = data['fname']
         directory, fname = os.path.split(audiof)
-        sf = SoundFile(directory, audiof)
+        sf = SoundFile(directory, fname) # error?
         update_sound_file(sf, data)
         soundfiles.append(sf)
         print(f'added {fname}')
@@ -678,21 +725,26 @@ def read_json(directory):
         audiof = data['fname']
         directory, fname = os.path.split(audiof)
         if is_segmented(f) == 1:
-          for sfi in soundfiles:
-            if sfi.name == audiof:
+           for sfi in soundfiles:
+            print(f'sfi.name is {sfi.name}')
+            print(f'fname is {fname}')
+            if sfi.name == fname:
               update_sound_file(sfi, data)
   return soundfiles
 
 def read_json_file(sfi, jsonf):
   with open(os.path.join(sfi.path, jsonf)) as json_file:
     data = json.load(json_file)
-    sfi.analysis.append(data)
+    update_sound_file(sfi, data)
+
 
 def update_sound_file(sfi, data):
   """Update an instance with segment data"""
-  sfi.analysis.append(data)
+  sfi.analysis.append(data) # load the entire json file into memory
   sfi.start.append(data['start_time'])
-  sfi.end.append(data['end_time'])
+  e = data['end_time']
+  sfi.end.append(e)
+  print(f'       end time is: {e}')
   return sfi
 
 def is_segmented(fname):
@@ -708,7 +760,16 @@ def is_segmented(fname):
   else:
     return 0
   #+end_src
+** COMMENT main play
+#+begin_src python
+import sounddevice as sd
 
+def play(name='default'):
+  print(f"{name} is playing...")
+  print(os.path.join(path, name))
+  sd.play(self.soundfile[self.start[0], self.end[0]], self.fs)
+  sd.wait()
+#+end_src
 ** setup
 #+begin_src python :session :results value :tangle ./../audio_sort/setup.py
 from setuptools import setup

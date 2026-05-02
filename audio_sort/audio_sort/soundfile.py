@@ -21,9 +21,9 @@ class SoundFile:
     self.name = name
     self.path = path
     self.segment_dir = ''
-    self.segment_names = []
-    self.start = []
-    self.end = []
+    self.segment_names = ['init']
+    self.start = [0]
+    self.end = [0]
     self.segmented = False
     self.soundfile, self.fs = librosa.load(os.path.join(self.path, self.name), sr=None, mono=True)
     self.length = librosa.get_duration(y = self.soundfile)
@@ -47,13 +47,18 @@ class SoundFile:
       print(self.start)
       for j in range(len(self.start)):
         print('Segment:', self.segment_names[j])
-        print('Segment is:', self.start[j], ':', self.end[j])
+        print('Segment is: ', self.start[j], ':', self.end[j])
+    else:
+      print(f'Segment is: {self.start[0]}:{self.end[0]}')
+      print(f'Segment length is {self.length}.')
+      print(f'Sample rate is {self.fs}.')
     
   def play(self, name='default'):
     print(f"{self.name} is playing...")
     print(os.path.join(self.path, self.name))
     sd.play(self.soundfile[self.start[0], self.end[0]], self.fs)
     sd.wait()
+
 
   def segment_audio(self):
     """Segment longer files into segments"""
@@ -66,10 +71,10 @@ class SoundFile:
           #        print("create directory")
           os.mkdir(self.segment_dir)
         print("no regions of interest")
-        self.start.append(int(0 * self.fs))
-        self.end.append(int(4 * self.fs))
+        self.start[0] = (int(0 * self.fs))
+        self.end[0] = (int(4 * self.fs)) #set length to 4s
         segment = self.soundfile[self.start[0]:self.end[0]]
-        self.segment_names.append(self.segment_dir + '/' + Path(self.name).stem + '_segment_{}.wav'.format(0))
+        self.segment_names[0] = (self.segment_dir + '/' + Path(self.name).stem + '_segment_{}.wav'.format(0))
         # apply window to segment
         segment = self.apply_fade(segment)
         # change this to maad or librosa
@@ -81,8 +86,8 @@ class SoundFile:
           os.mkdir(self.segment_dir)
         for i, row in regions.iterrows():
           #        print(i)
-          self.start.append(int(row['min_t'] * self.fs))
-          self.end.append(int(row['max_t'] * self.fs))
+          self.start.append(int(0 * self.fs))
+          self.end.append(int(4 * self.fs))
           segment = self.soundfile[int(row['min_t'] * self.fs):int(row['max_t'] * self.fs)]
           self.segment_names.append(self.segment_dir + '/' + Path(self.name).stem + '_segment_{}.wav'.format(i))
           # apply window to segment
@@ -90,8 +95,8 @@ class SoundFile:
           # change this to maad or librosa
           soundf.write(self.segment_names[i], segment, self.fs)
     else:
-      self.start.append(0)
-      self.end.append(int(self.length * self.fs))
+      self.start[0] = 0
+      self.end[0] = (int(self.length * self.fs))
       self.segmented = False
       
   def analyze(self):
